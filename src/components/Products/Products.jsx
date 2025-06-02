@@ -1,15 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import Spinner from '../Spinner/Spinner';
 import './Products.css';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     axios.get('http://localhost:8000/api/products')
-      .then(response => setProducts(response.data))
-      .catch(error => console.error(error));
+      .then(response => {
+        setProducts(response.data);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error(error);
+        setLoading(false);
+      });
   }, []);
+
+  if (loading) {
+    return <Spinner />;
+  }
 
   return (
     <div className="product-grid">
@@ -25,6 +37,7 @@ const Products = () => {
             )}
           </div>
           <h3>{product.name}</h3>
+          <p>{product.description}</p>
           <p className="price">${parseFloat(product.price).toFixed(2)}</p>
           <button className="buy-button">Buy Now</button>
         </div>
