@@ -8,7 +8,7 @@ import Navbar from "../../components/NavBar/NavBar";
 import Footer from "../../components/Footer/Footer";
 import './Home.css';
 import Products from '../../components/Products/Products';
-import TopDiscountedProducts from '../../components/TopDiscountedProducts/TopDiscountedProducts';
+import { Link } from 'react-router-dom';
 
 const slides = [
   {
@@ -36,6 +36,10 @@ const Home = () => {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [categories, setCategories] = useState([]);
   const [isHovering, setIsHovering] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [discountedProducts, setDiscountedProducts] = useState([]);
+  const [discountedLoading, setDiscountedLoading] = useState(true);
   const scrollRef = useRef(null);
   const scrollIntervalRef = useRef(null);
 
@@ -91,6 +95,30 @@ const Home = () => {
 
     return () => stopAutoScroll();
   }, [isHovering]);
+
+  useEffect(() => {
+    // Fetch regular products
+    axios.get('http://localhost:8000/api/products')
+      .then(response => {
+        setProducts(response.data);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error(error);
+        setLoading(false);
+      });
+
+    // Fetch discounted products
+    axios.get('http://localhost:8000/api/top-discounted-products')
+      .then(response => {
+        setDiscountedProducts(response.data);
+        setDiscountedLoading(false);
+      })
+      .catch(error => {
+        console.error(error);
+        setDiscountedLoading(false);
+      });
+  }, []);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
@@ -165,11 +193,15 @@ const Home = () => {
             <ChevronLeft size={24} />
           </button>
           <div className="categories-list" ref={scrollRef}>
-            {categories.map((category) => (
-              <div key={category.id} className="category-item">
-                <span>{category.name}</span>
-              </div>
-            ))}
+          {categories.map((category) => (
+            <Link
+              key={category.id}
+              to={`/store/category/${encodeURIComponent(category.name)}`}
+              className="category-item"
+            >
+              <span>{category.name}</span>
+            </Link>
+          ))}
           </div>
           <button 
             className="scroll-button right" 
@@ -181,8 +213,19 @@ const Home = () => {
         </div>
       </section>
 
-      <Products />
-      <TopDiscountedProducts />
+      <Products 
+        products={products} 
+        loading={loading} 
+        title="Featured Products :"
+      />
+      
+      <Products 
+        products={discountedProducts} 
+        loading={discountedLoading} 
+        title="Top Discounted Products :"
+        showDiscount={true}
+      />
+      
       <Footer />
     </div>
   );
