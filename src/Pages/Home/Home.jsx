@@ -8,6 +8,7 @@ import Navbar from "../../components/NavBar/NavBar";
 import Footer from "../../components/Footer/Footer";
 import './Home.css';
 import Products from '../../components/Products/Products';
+import TopDiscountedProducts from '../../components/TopDiscountedProducts/TopDiscountedProducts';
 
 const slides = [
   {
@@ -181,6 +182,7 @@ const Home = () => {
       </section>
 
       <Products />
+      <TopDiscountedProducts />
       <Footer />
     </div>
   );
