@@ -12,18 +12,20 @@ const Checkout = () => {
   const navigate = useNavigate();
   const cart = useSelector((state) => state.cart.items);
   const total = useSelector((state) => state.cart.total);
+  const user = useSelector((state) => state.auth.user);
 
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (cart.length === 0) navigate('/cart');
-  }, [cart.length, navigate]);
+    if (!user) navigate('/auth', { state: { from: { pathname: '/check-out' } } });
+  }, [cart.length, navigate, user]);
 
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
+    firstName: user?.name?.split(' ')[0] || '',
+    lastName: user?.name?.split(' ').slice(1).join(' ') || '',
+    email: user?.email || '',
     phone: '',
     address: '',
     city: '',
@@ -76,44 +78,102 @@ const Checkout = () => {
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="firstName">First Name</label>
-                    <input type="text" id="firstName" name="firstName" value={formData.firstName} onChange={handleInputChange} required />
+                    <input 
+                      type="text" 
+                      id="firstName" 
+                      name="firstName" 
+                      value={formData.firstName} 
+                      onChange={handleInputChange} 
+                      required 
+                      readOnly={!!user}
+                    />
                   </div>
                   <div className="form-group">
                     <label htmlFor="lastName">Last Name</label>
-                    <input type="text" id="lastName" name="lastName" value={formData.lastName} onChange={handleInputChange} required />
+                    <input 
+                      type="text" 
+                      id="lastName" 
+                      name="lastName" 
+                      value={formData.lastName} 
+                      onChange={handleInputChange} 
+                      required 
+                      readOnly={!!user}
+                    />
                   </div>
                 </div>
 
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="email">Email</label>
-                    <input type="email" id="email" name="email" value={formData.email} onChange={handleInputChange} required />
+                    <input 
+                      type="email" 
+                      id="email" 
+                      name="email" 
+                      value={formData.email} 
+                      onChange={handleInputChange} 
+                      required 
+                      readOnly={!!user}
+                    />
                   </div>
                   <div className="form-group">
                     <label htmlFor="phone">Phone</label>
-                    <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleInputChange} required />
+                    <input 
+                      type="tel" 
+                      id="phone" 
+                      name="phone" 
+                      value={formData.phone} 
+                      onChange={handleInputChange} 
+                      required 
+                    />
                   </div>
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="address">Address</label>
-                  <input type="text" id="address" name="address" value={formData.address} onChange={handleInputChange} required />
+                  <input 
+                    type="text" 
+                    id="address" 
+                    name="address" 
+                    value={formData.address} 
+                    onChange={handleInputChange} 
+                    required 
+                  />
                 </div>
 
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="city">City</label>
-                    <input type="text" id="city" name="city" value={formData.city} onChange={handleInputChange} required />
+                    <input 
+                      type="text" 
+                      id="city" 
+                      name="city" 
+                      value={formData.city} 
+                      onChange={handleInputChange} 
+                      required 
+                    />
                   </div>
                   <div className="form-group">
                     <label htmlFor="postalCode">Postal Code</label>
-                    <input type="text" id="postalCode" name="postalCode" value={formData.postalCode} onChange={handleInputChange} required />
+                    <input 
+                      type="text" 
+                      id="postalCode" 
+                      name="postalCode" 
+                      value={formData.postalCode} 
+                      onChange={handleInputChange} 
+                      required 
+                    />
                   </div>
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="country">Country</label>
-                  <select id="country" name="country" value={formData.country} onChange={handleInputChange} required>
+                  <select 
+                    id="country" 
+                    name="country" 
+                    value={formData.country} 
+                    onChange={handleInputChange} 
+                    required
+                  >
                     <option value="Morocco">Morocco</option>
                   </select>
                 </div>

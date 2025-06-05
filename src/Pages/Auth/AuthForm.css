@@ -3,21 +3,21 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 4rem auto;
-    width:40%;
-    padding: 20px;
+    min-height: calc(100vh - 160px);
+    padding: 2rem;
+    background-color: #f8f9fa;
 }
 
 /* The form container */
 .auth-form {
     background-color: #fff;
-    padding: 10px 40px;
+    padding: 2rem;
     border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    width: 100% ;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
     opacity: 0;
     animation: fadeIn 0.8s forwards;
-    text-align: center;
 }
 
 /* Animation for the form fade-in effects */
@@ -31,107 +31,141 @@
 
 /* Title style */
 .form-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #2A4178;
-    margin-bottom: 20px;
-    text-transform: capitalize;
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1.5rem;
+    text-align: center;
 }
 
 /* Styling for the form fields */
 .form-group {
-    margin-bottom: 20px;
-    text-align: left;
-    position: relative;
+    margin-bottom: 1.2rem;
 }
 
 .form-group label {
-    font-size: 0.9rem;
-    color: #2c2c2c;
-    margin-bottom: 5px;
     display: block;
-    
+    margin-bottom: 0.5rem;
+    color: #4b5563;
+    font-weight: 500;
 }
 
 .form-group input {
     width: 100%;
-    padding: 12px;
+    padding: 0.75rem;
+    border: 1px solid #e5e7eb;
     border-radius: 6px;
-    border: 1px solid #ddd;
     font-size: 1rem;
-    color: #555;
-    outline: none;
-    transition: border 0.3s ease-in-out;
+    transition: all 0.2s ease;
 }
 
 .form-group input:focus {
-    border: 1px solid #2A4178;
+    outline: none;
+    border-color: #000;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Button style */
 .submit-btn {
-    width: 30%;
-    padding: 12px;
-    background-color: #2A4178;
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #000;
     color: white;
     border: none;
-    border-radius: 16px;
+    border-radius: 6px;
     font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.2s ease;
+    margin-top: 1rem;
 }
 
-.submit-btn:hover {
-    background-color: #425fa3;
+.submit-btn:hover:not(:disabled) {
+    background-color: #333;
+}
+
+.submit-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
 }
 
 /* Link to switch between login and signup */
 .toggle-btn {
     background: none;
     border: none;
-    color: #2A4178;
-    font-size: 1rem;
+    color: #000;
+    font-size: 0.9rem;
     cursor: pointer;
-    margin: 20px 0;
-    transition: color 0.3s ease;
+    margin-top: 1rem;
+    transition: color 0.2s ease;
+    width: 100%;
+    padding: 0.5rem;
 }
 
-.toggle-btn:hover {
-    color: #5a66cc;
+.toggle-btn:hover:not(:disabled) {
+    color: #333;
+    text-decoration: underline;
 }
+
+.toggle-btn:disabled {
+    color: #ccc;
+    cursor: not-allowed;
+}
+
 .error-text {
-    color: #ff0000;
-    font-size: 0.9rem;
-    margin-top: 5px;
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    padding: 0.5rem;
+    background-color: #fee2e2;
+    border-radius: 4px;
 }
 
 /* Animation definitions */
 @keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
     to {
         opacity: 1;
+        transform: translateY(0);
     }
 }
 
 @keyframes fadeInBottom {
-    0% {
+    from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(20px);
     }
-
-    100% {
+    to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
 @keyframes fadeInTop {
-    0% {
+    from {
         opacity: 0;
-        transform: translateY(-30px);
+        transform: translateY(-20px);
     }
-
-    100% {
+    to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-container {
+        padding: 1rem;
+    }
+
+    .auth-form {
+        padding: 1.5rem;
+    }
+
+    .form-title {
+        font-size: 1.5rem;
     }
 }

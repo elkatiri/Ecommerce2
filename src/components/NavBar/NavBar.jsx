@@ -1,23 +1,27 @@
 // src/components/Navbar.jsx
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, Heart, ShoppingCart, User, Menu, X, ShoppingBag, Trash, Plus, Minus } from "lucide-react";
+import { Search, Heart, ShoppingCart, User, Menu, X, ShoppingBag, Trash, Plus, Minus, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { removeFromCart, updateQuantity } from "../../store/cartSlice";
+import { logout } from "../../store/authSlice";
 import "./NavBar.css";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isCartVisible, setIsCartVisible] = useState(false);
+  const [isUserMenuVisible, setIsUserMenuVisible] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const cart = useSelector((state) => state.cart.items);
   const total = useSelector((state) => state.cart.total);
+  const user = useSelector((state) => state.auth.user);
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const toggleCart = () => setIsCartVisible(!isCartVisible);
+  const toggleUserMenu = () => setIsUserMenuVisible(!isUserMenuVisible);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,6 +32,39 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isUserMenuVisible && !event.target.closest('.user-menu')) {
+        setIsUserMenuVisible(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isUserMenuVisible]);
+
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (token) {
+        await axios.post("/api/logout", {}, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("userName");
+      localStorage.removeItem("email");
+      dispatch(logout());
+      navigate("/");
+    }
+  };
+
   const isActive = (path) => {
     if (path === "/") {
       return location.pathname === "/";
@@ -37,15 +74,13 @@ const Navbar = () => {
 
   const handleQuantityChange = (itemId, change) => {
     try {
-      // Find the item in the cart
       const item = cart.find(cartItem => cartItem.id === itemId);
       if (item) {
-        const newQuantity = Math.max(1, item.quantity + change); // Ensure quantity doesn't go below 1
+        const newQuantity = Math.max(1, item.quantity + change);
         dispatch(updateQuantity({ id: itemId, quantity: newQuantity }));
       }
     } catch (error) {
       console.error('Error updating quantity:', error);
-      // You could add a toast notification here to show the error to the user
     }
   };
 
@@ -121,9 +156,24 @@ const Navbar = () => {
               <ShoppingCart className="icon" size={20} />
               <span className="icon-badge">{cart.length}</span>
             </button>
-            <button className="icon-button" aria-label="Account">
-              <User className="icon" size={20} />
-            </button>
+            <div className="user-menu-container">
+              <button className="icon-button" aria-label="Account" onClick={toggleUserMenu}>
+                <User className="icon" size={20} />
+                {user && <span className="user-name">{user.name.split(' ')[0]}</span>}
+              </button>
+              {isUserMenuVisible && (
+                <div className="user-menu">
+                  <div className="user-info">
+                    <span className="user-full-name">{user?.name}</span>
+                    <span className="user-email">{user?.email}</span>
+                  </div>
+                  <button onClick={handleLogout} className="menu-item">
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </ul>
 
@@ -137,9 +187,24 @@ const Navbar = () => {
               <ShoppingCart className="icon" size={20} />
               <span className="icon-badge">{cart.length}</span>
             </button>
-            <button className="icon-button" aria-label="Account">
-              <User className="icon" size={20} />
-            </button>
+            <div className="user-menu-container">
+              <button className="icon-button" aria-label="Account" onClick={toggleUserMenu}>
+                <User className="icon" size={20} />
+                {user && <span className="user-name">{user.name.split(' ')[0]}</span>}
+              </button>
+              {isUserMenuVisible && (
+                <div className="user-menu">
+                  <div className="user-info">
+                    <span className="user-full-name">{user?.name}</span>
+                    <span className="user-email">{user?.email}</span>
+                  </div>
+                  <button onClick={handleLogout} className="menu-item">
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
           <div className="hamburger" onClick={toggleMenu} aria-label="Toggle menu">
             {isOpen ? <X size={24} /> : <Menu size={24} />}

@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./AuthForm.css";
-import { useNavigate } from "react-router-dom";
-import Footer from "../footer";
-import Navbar from "../navbar";
-import Spinner from "../spinner";
-import { useDispatch } from "react-redux"; // Import the dispatch hook
-import { setUser } from "../authSlice"; // Import the setUser action
+import { useNavigate, useLocation } from "react-router-dom";
+import Footer from "../../components/Footer/Footer";
+import NavBar from "../../components/NavBar/NavBar";
+import Spinner from "../../components/Spinner/Spinner";
+import { useDispatch, useSelector } from "react-redux";
+import { setCredentials, logout } from "../../store/authSlice";
+
+// Configure axios defaults
+axios.defaults.withCredentials = true; // Important for Sanctum
+axios.defaults.baseURL = 'http://127.0.0.1:8000';
 
 const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -20,7 +24,71 @@ const AuthForm = () => {
     password_confirmation: "",
   });
   const navigate = useNavigate();
-  const dispatch = useDispatch(); // Initialize the dispatch function
+  const location = useLocation();
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
+
+  // Get the redirect path from location state or default to home
+  const from = location.state?.from?.pathname || "/";
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const token = localStorage.getItem("token");
+    if (token) {
+      fetchUserData(token);
+    }
+  }, []);
+
+  const fetchUserData = async (token) => {
+    try {
+      const response = await axios.get("/api/user", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      dispatch(setCredentials({
+        user: {
+          name: response.data.name,
+          email: response.data.email,
+          is_admin: response.data.is_admin
+        },
+        token: token
+      }));
+
+      // Redirect to the saved path or dashboard for admin
+      if (response.data.is_admin) {
+        navigate("/dashboard/products");
+      } else {
+        navigate(from);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      handleLogout();
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (token) {
+        await axios.post("/api/logout", {}, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // Clear local storage and Redux state
+      localStorage.removeItem("token");
+      localStorage.removeItem("userName");
+      localStorage.removeItem("email");
+      dispatch(logout());
+      navigate("/");
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,70 +101,99 @@ const AuthForm = () => {
   const toggleForm = () => {
     setIsLogin((prevState) => !prevState);
     setBorder(false);
+    setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Set loading to true when form is submitted
+    setLoading(true);
+    setError("");
 
-    if (isLogin) {
-      setBorder(false);
-      setError("");
-      try {
-        const resp = await axios.post("http://127.0.0.1:8000/api/login", {
+    try {
+      if (isLogin) {
+        const response = await axios.post("/api/login", {
           email: formData.email,
           password: formData.password,
         });
-        if (resp.data.user.is_admin) {
-          localStorage.setItem("admin", true);
+
+        const { token, user } = response.data;
+        
+        // Store auth data
+        localStorage.setItem("token", token);
+        localStorage.setItem("userName", user.name);
+        localStorage.setItem("email", user.email);
+
+        // Update Redux store with credentials
+        dispatch(setCredentials({
+          user: {
+            name: user.name,
+            email: user.email,
+            is_admin: user.is_admin
+          },
+          token: token
+        }));
+
+        // Redirect based on user role and saved path
+        if (user.is_admin) {
           navigate("/dashboard/products");
         } else {
-          navigate("/home");
+          navigate(from);
         }
-        localStorage.setItem("token", resp.data.token);
-        localStorage.setItem("userName", resp.data.user.name);
-        localStorage.setItem("email", resp.data.user.email);
+      } else {
+        // Registration
+        if (formData.password !== formData.password_confirmation) {
+          setError("Passwords do not match");
+          setBorder(true);
+          return;
+        }
 
-        // Dispatch the setUser action to store the user information in the Redux store
-        dispatch(
-          setUser({ name: resp.data.user.name, token: resp.data.token })
-        );
-      } catch (error) {
-        console.error("Login failed:", error);
-        setBorder(true);
-      }
-    } else {
-      if (formData.password !== formData.password_confirmation) {
-        setBorder(true);
-        setLoading(false); // Reset loading state if validation fails
-        return;
-      }
-
-      try {
-        await axios.post("http://127.0.0.1:8000/api/register", formData);
+        await axios.post("/api/register", formData);
         setIsLogin(true);
-        setBorder(false);
-        setError("");
-      } catch (error) {
-        setError(error.response.data.message);
+        setError("Registration successful! Please login.");
       }
+    } catch (error) {
+      console.error("Auth error:", error);
+      setError(error.response?.data?.message || "An error occurred. Please try again.");
+      setBorder(true);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false); // Reset loading state after API call
   };
+
+  // If user is already logged in, show a message
+  if (user) {
+    return (
+      <>
+        <NavBar />
+        <div className="auth-container">
+          <div className="auth-form">
+            <h2 className="form-title">Welcome back, {user.name}!</h2>
+            <p style={{ textAlign: 'center', marginBottom: '1rem' }}>
+              You are already logged in.
+            </p>
+            <button onClick={handleLogout} className="submit-btn">
+              Logout
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
-      <Navbar />
+      <NavBar />
       <div className="auth-container">
-        <div
-          className={`auth-form ${isLogin ? "fade-in-bottom" : "fade-in-top"}`}
-        >
+        <div className={`auth-form ${isLogin ? "fade-in-bottom" : "fade-in-top"}`}>
           <h2 className="form-title">{isLogin ? "Sign In" : "Sign Up"}</h2>
           {loading && <Spinner />}
+          {error && <p className="error-text">{error}</p>}
+          
           <form onSubmit={handleSubmit}>
             {!isLogin && (
               <div className="form-group">
-                <label htmlFor="name"> Name</label>
+                <label htmlFor="name">Name</label>
                 <input
                   type="text"
                   id="name"
@@ -108,6 +205,7 @@ const AuthForm = () => {
                 />
               </div>
             )}
+            
             <div className="form-group">
               <label htmlFor="email">Email Address</label>
               <input
@@ -119,8 +217,8 @@ const AuthForm = () => {
                 onChange={handleChange}
                 required
               />
-              {error && <p className="error-text">{error}</p>}
             </div>
+            
             <div className="form-group">
               <label htmlFor="password">Password</label>
               <input
@@ -153,12 +251,12 @@ const AuthForm = () => {
               </div>
             )}
 
-            <button type="submit" className="submit-btn">
+            <button type="submit" className="submit-btn" disabled={loading}>
               {isLogin ? "Sign In" : "Create Account"}
             </button>
           </form>
 
-          <button className="toggle-btn" onClick={toggleForm}>
+          <button className="toggle-btn" onClick={toggleForm} disabled={loading}>
             {isLogin
               ? "Need an account? Sign Up"
               : "Already have an account? Sign In"}
