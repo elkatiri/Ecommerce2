@@ -1,8 +1,22 @@
 import React from 'react';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../../store/cartSlice';
 import Spinner from '../Spinner/Spinner';
 import './Products.css';
 
 const Products = ({ products, loading, title, showDiscount = true }) => {
+  const dispatch = useDispatch();
+
+  const handleAddToCart = (product) => {
+    dispatch(addToCart({
+      id: product.id,
+      name: product.name,
+      price: parseFloat(product.price),
+      image: product.images[0]?.image_path,
+      quantity: 1
+    }));
+  };
+
   if (loading) {
     return <Spinner />;
   }
@@ -39,7 +53,12 @@ const Products = ({ products, loading, title, showDiscount = true }) => {
             ) : (
               <p className="price">${parseFloat(product.price).toFixed(2)}</p>
             )}
-            <button className="buy-button">Buy Now</button>
+            <button 
+              className="buy-button"
+              onClick={() => handleAddToCart(product)}
+            >
+              Add to Cart
+            </button>
           </div>
         ))}
       </div>

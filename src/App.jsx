@@ -1,6 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./Pages/Home/Home";
 import Store from "./Pages/Store/Store";
+import Cart from "./Pages/Cart/Cart";
+import Checkout from "./Pages/Checkout/Checkout";
+import Contact from "./Pages/Contact/Contact";
+import AuthForm from "./Pages/Auth/AuthForm";
 
 function App() {
   return (
@@ -9,12 +13,12 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/store" element={<Store />} />
         <Route path="/store/category/:category" element={<Store />} />
-        <Route path="/blog" element={<h1>Blog</h1>} />
-        <Route path="/contact" element={<h1>Contact Us</h1>} />
-        <Route path="/about" element={<h1>About</h1>} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/check-out" element={<Checkout />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/auth" element={<AuthForm />} />
       </Routes>
     </Router>
   );
 }
-
 export default App;
