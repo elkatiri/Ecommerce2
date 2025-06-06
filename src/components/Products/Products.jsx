@@ -4,7 +4,7 @@ import { addToCart } from '../../store/cartSlice';
 import Spinner from '../Spinner/Spinner';
 import './Products.css';
 
-const Products = ({ products, loading, title, showDiscount}) => {
+const Products = ({ products, loading, title, showDiscount }) => {
   const dispatch = useDispatch();
 
   const handleAddToCart = (product) => {

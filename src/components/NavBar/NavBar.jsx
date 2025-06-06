@@ -1,6 +1,6 @@
 // src/components/Navbar.jsx
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, Heart, ShoppingCart, User, Menu, X, ShoppingBag, Trash, Plus, Minus, LogOut } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, X, ShoppingBag, Trash, Plus, Minus, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { removeFromCart, updateQuantity } from "../../store/cartSlice";
@@ -160,10 +160,6 @@ const Navbar = () => {
             </Link>
           </li>
           <div className="mobile-icons">
-            <button className="icon-button" aria-label="Wishlist">
-              <Heart className="icon" size={20} />
-              <span className="icon-badge">0</span>
-            </button>
             <button className="icon-button" aria-label="Cart" onClick={toggleCart}>
               <ShoppingCart className="icon" size={20} />
               <span className="icon-badge">{cart.length}</span>
@@ -191,10 +187,6 @@ const Navbar = () => {
 
         <div className="navbar-right">
           <div className="navbar-icons desktop-only">
-            <button className="icon-button" aria-label="Wishlist">
-              <Heart className="icon" size={20} />
-              <span className="icon-badge">0</span>
-            </button>
             <button className="icon-button" aria-label="Cart" onClick={toggleCart}>
               <ShoppingCart className="icon" size={20} />
               <span className="icon-badge">{cart.length}</span>
