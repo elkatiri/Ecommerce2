@@ -131,7 +131,7 @@
 .order-item {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 10rem;
   padding: 1rem;
   border-bottom: 1px solid #e5e7eb;
   background-color: #f8f9fa;

@@ -12,9 +12,9 @@ export const cartSlice = createSlice({
     addToCart: (state, action) => {
       const existingItem = state.items.find(item => item.id === action.payload.id);
       if (existingItem) {
-        existingItem.quantity += 1;
+        existingItem.quantity += action.payload.quantity;
       } else {
-        state.items.push({ ...action.payload, quantity: 1 });
+        state.items.push({ ...action.payload });
       }
       state.total = state.items.reduce((total, item) => total + (item.price * item.quantity), 0);
     },

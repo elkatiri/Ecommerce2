@@ -259,7 +259,7 @@ const Navbar = () => {
               </div>
             ))
           ) : (
-            <p className="empty-cart">Your cart is empty.</p>
+            <p className="empty-carte">Your cart is empty.</p>
           )}
         </div>
         <div className="shopping-totale">
