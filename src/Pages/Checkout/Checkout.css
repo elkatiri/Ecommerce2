@@ -56,8 +56,8 @@
 .form-group {
   flex: 1;
   margin-bottom: 0;
+  margin-right: 10px;
 }
-
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
@@ -67,7 +67,7 @@
 
 .form-group input,
 .form-group select {
-  width: 95%;
+  width:95%;
   padding: 0.75rem;
   border: 1px solid #1f2020;
   border-radius: 6px;

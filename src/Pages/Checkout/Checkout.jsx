@@ -6,6 +6,7 @@ import { clearCart } from '../../store/cartSlice';
 import Navbar from '../../components/NavBar/NavBar';
 import Footer from '../../components/Footer/Footer';
 import './Checkout.css';
+import axios from 'axios';
 
 const Checkout = () => {
   const dispatch = useDispatch();
@@ -16,6 +17,7 @@ const Checkout = () => {
 
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (cart.length === 0) navigate('/cart');
@@ -43,22 +45,58 @@ const Checkout = () => {
     setShowConfirmation(true);
   };
 
-  const confirmOrder = () => {
+  const confirmOrder = async () => {
     if (isLoading) return;
     setIsLoading(true);
+    setError('');
 
     try {
-      // Clear cart and navigate to confirmation
-      dispatch(clearCart());
-      navigate('/order-confirmation', { replace: true });
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('No authentication token found. Please login again.');
+        setShowConfirmation(false);
+        return;
+      }
+
+      if (!user?.id) {
+        setError('User information not found. Please try logging in again.');
+        setShowConfirmation(false);
+        return;
+      }
+
+      const orderData = {
+        user_id: user.id,
+        total_price: total,
+        status: 'pending',
+        shipping_address: `${formData.address}, ${formData.city}, ${formData.postalCode}, ${formData.country}`,
+        products: cart.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      };
+
+      const response = await axios.post('http://localhost:8000/api/orders', orderData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+
+      if (response.data) {
+        dispatch(clearCart());
+        setShowConfirmation(false);
+        alert('Order placed successfully! Thank you for your purchase.');
+        navigate('/');
+      }
     } catch (error) {
-      console.error('Checkout error:', error);
-      alert('An error occurred during checkout. Please try again.');
+      setError(error.response?.data?.message || 'An error occurred during checkout. Please try again.');
+      setShowConfirmation(false);
     } finally {
       setIsLoading(false);
     }
   };
-
   const cancelOrder = () => setShowConfirmation(false);
 
   if (cart.length === 0) return null;
@@ -216,7 +254,7 @@ const Checkout = () => {
         <div className="confirmation-overlay">
           <div className="confirmation-modal">
             <h3>Confirm Your Order</h3>
-            <p>Are you sure you want to place this order?</p>
+            <p>{error || 'Are you sure you want to place this order?'}</p>
             <div className="confirmation-buttons">
               <button 
                 onClick={confirmOrder} 

@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { removeFromCart, updateQuantity } from "../../store/cartSlice";
 import { logout } from "../../store/authSlice";
+import axios from 'axios';
 import "./NavBar.css";
 
 const Navbar = () => {
@@ -21,7 +22,13 @@ const Navbar = () => {
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const toggleCart = () => setIsCartVisible(!isCartVisible);
-  const toggleUserMenu = () => setIsUserMenuVisible(!isUserMenuVisible);
+  const toggleUserMenu = () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    setIsUserMenuVisible(!isUserMenuVisible);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -82,6 +89,11 @@ const Navbar = () => {
     } catch (error) {
       console.error('Error updating quantity:', error);
     }
+  };
+
+  const getUserFirstName = () => {
+    if (!user?.name) return '';
+    return user.name.split(' ')[0];
   };
 
   return (
@@ -159,13 +171,13 @@ const Navbar = () => {
             <div className="user-menu-container">
               <button className="icon-button" aria-label="Account" onClick={toggleUserMenu}>
                 <User className="icon" size={20} />
-                {user && <span className="user-name">{user.name.split(' ')[0]}</span>}
+                {user && <span className="user-name">{getUserFirstName()}</span>}
               </button>
-              {isUserMenuVisible && (
+              {isUserMenuVisible && user && (
                 <div className="user-menu">
                   <div className="user-info">
-                    <span className="user-full-name">{user?.name}</span>
-                    <span className="user-email">{user?.email}</span>
+                    <span className="user-full-name">{user.name}</span>
+                    <span className="user-email">{user.email}</span>
                   </div>
                   <button onClick={handleLogout} className="menu-item">
                     <LogOut size={16} />
@@ -190,13 +202,13 @@ const Navbar = () => {
             <div className="user-menu-container">
               <button className="icon-button" aria-label="Account" onClick={toggleUserMenu}>
                 <User className="icon" size={20} />
-                {user && <span className="user-name">{user.name.split(' ')[0]}</span>}
+                {user && <span className="user-name">{getUserFirstName()}</span>}
               </button>
-              {isUserMenuVisible && (
+              {isUserMenuVisible && user && (
                 <div className="user-menu">
                   <div className="user-info">
-                    <span className="user-full-name">{user?.name}</span>
-                    <span className="user-email">{user?.email}</span>
+                    <span className="user-full-name">{user.name}</span>
+                    <span className="user-email">{user.email}</span>
                   </div>
                   <button onClick={handleLogout} className="menu-item">
                     <LogOut size={16} />
@@ -224,6 +236,10 @@ const Navbar = () => {
                 <img
                   src={`http://localhost:8000/storage/${item.image}`}
                   alt={item.name}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '/fallback.jpg';
+                  }}
                 />
                 <p>{item.name}</p>
                 <div className="quantity-controls">
@@ -256,9 +272,7 @@ const Navbar = () => {
         </div>
         <div className="shopping-totale">
           <h1>Subtotal</h1>
-          <p>
-            {total.toFixed(2)} dh
-          </p>
+          <p>{total.toFixed(2)} dh</p>
         </div>
         <hr />
         <div className="shopping-buttons">

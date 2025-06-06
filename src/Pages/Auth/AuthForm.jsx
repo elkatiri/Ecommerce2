@@ -49,9 +49,9 @@ const AuthForm = () => {
       
       dispatch(setCredentials({
         user: {
+          id: response.data.id,
           name: response.data.name,
           email: response.data.email,
-          is_admin: response.data.is_admin
         },
         token: token
       }));
@@ -60,7 +60,7 @@ const AuthForm = () => {
       if (response.data.is_admin) {
         navigate("/dashboard/products");
       } else {
-        navigate(from);
+        navigate("/");
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -116,21 +116,21 @@ const AuthForm = () => {
           password: formData.password,
         });
 
-        const { token, user } = response.data;
+        const { access_token, user } = response.data;
         
         // Store auth data
-        localStorage.setItem("token", token);
+        localStorage.setItem("token", access_token);
         localStorage.setItem("userName", user.name);
         localStorage.setItem("email", user.email);
 
         // Update Redux store with credentials
         dispatch(setCredentials({
           user: {
+            id: user.id,
             name: user.name,
             email: user.email,
-            is_admin: user.is_admin
           },
-          token: token
+          token: access_token
         }));
 
         // Redirect based on user role and saved path
@@ -187,7 +187,6 @@ const AuthForm = () => {
       <div className="auth-container">
         <div className={`auth-form ${isLogin ? "fade-in-bottom" : "fade-in-top"}`}>
           <h2 className="form-title">{isLogin ? "Sign In" : "Sign Up"}</h2>
-          {loading && <Spinner />}
           {error && <p className="error-text">{error}</p>}
           
           <form onSubmit={handleSubmit}>
@@ -202,6 +201,7 @@ const AuthForm = () => {
                   value={formData.name}
                   onChange={handleChange}
                   required
+                  disabled={loading}
                 />
               </div>
             )}
@@ -216,6 +216,7 @@ const AuthForm = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
+                disabled={loading}
               />
             </div>
             
@@ -229,6 +230,7 @@ const AuthForm = () => {
                 value={formData.password}
                 onChange={handleChange}
                 required
+                disabled={loading}
                 style={{ border: border ? "1px solid red" : "1px solid #ccc" }}
               />
             </div>
@@ -244,6 +246,7 @@ const AuthForm = () => {
                   value={formData.password_confirmation}
                   onChange={handleChange}
                   required
+                  disabled={loading}
                   style={{
                     border: border ? "1px solid red" : "1px solid #ccc",
                   }}
@@ -251,12 +254,26 @@ const AuthForm = () => {
               </div>
             )}
 
-            <button type="submit" className="submit-btn" disabled={loading}>
-              {isLogin ? "Sign In" : "Create Account"}
+            <button 
+              type="submit" 
+              className={`submit-btn ${loading ? 'loading' : ''}`} 
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="loading-text">
+                  {isLogin ? "Signing in..." : "Creating account..."}
+                </span>
+              ) : (
+                isLogin ? "Sign In" : "Create Account"
+              )}
             </button>
           </form>
 
-          <button className="toggle-btn" onClick={toggleForm} disabled={loading}>
+          <button 
+            className="toggle-btn" 
+            onClick={toggleForm} 
+            disabled={loading}
+          >
             {isLogin
               ? "Need an account? Sign Up"
               : "Already have an account? Sign In"}

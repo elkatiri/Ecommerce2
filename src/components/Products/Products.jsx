@@ -4,7 +4,7 @@ import { addToCart } from '../../store/cartSlice';
 import Spinner from '../Spinner/Spinner';
 import './Products.css';
 
-const Products = ({ products, loading, title, showDiscount = true }) => {
+const Products = ({ products, loading, title, showDiscount}) => {
   const dispatch = useDispatch();
 
   const handleAddToCart = (product) => {
@@ -17,7 +17,7 @@ const Products = ({ products, loading, title, showDiscount = true }) => {
     }));
   };
 
-  if (loading) {
+  if (loading && !showDiscount) {
     return <Spinner />;
   }
 
