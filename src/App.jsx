@@ -6,6 +6,8 @@ import Checkout from "./Pages/Checkout/Checkout";
 import Contact from "./Pages/Contact/Contact";
 import AuthForm from "./Pages/Auth/AuthForm";
 import ProductDetails from "./components/ProductDetails/ProductDetails";
+import About from "./Pages/About/About";
+import Blog from "./Pages/Blog/Blog";
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/check-out" element={<Checkout />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/blog" element={<Blog />} />
         <Route path="/auth" element={<AuthForm />} />
       </Routes>
     </Router>
