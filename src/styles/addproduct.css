@@ -1,0 +1,339 @@
+/* Add Product Modal Styles */
+.add-product-modal {
+  --primary-orange: #FAA96C;
+  --light-orange: #FFF4E6;
+  --text-primary: #2C2E33;
+  --text-secondary: #868E96;
+  --border-light: #E9ECEF;
+  --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Modal Container */
+.add-product-modal .mantine-Modal-modal {
+  border-radius: 12px;
+  box-shadow: var(--shadow-medium);
+  overflow: hidden;
+  min-width: 850px;
+  max-width: 1000px;
+  width: 90vw;
+}
+
+/* Modal Header */
+.add-product-modal .mantine-Modal-header {
+  background: linear-gradient(135deg, var(--light-orange) 0%, #FFFFFF 100%);
+  border-bottom: 1px solid var(--border-light);
+  padding: 20px 24px;
+  margin: 0;
+}
+
+.add-product-modal .mantine-Modal-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 18px;
+}
+
+/* Modal Body */
+.add-product-modal .mantine-Modal-body {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  background: #FAFAFA;
+}
+
+/* Form Styling */
+.add-product-modal form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: var(--shadow-light);
+}
+
+/* Input Groups */
+.add-product-modal .mantine-Group-root {
+  margin-bottom: 16px;
+  gap: 16px;
+}
+
+.add-product-modal .mantine-Group-root > * {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Input Labels */
+.add-product-modal .mantine-InputWrapper-label {
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: visible;
+}
+
+/* Text Inputs */
+.add-product-modal .mantine-TextInput-input,
+.add-product-modal .mantine-NumberInput-input,
+.add-product-modal .mantine-Select-input,
+.add-product-modal .mantine-Textarea-input {
+  border: 1.5px solid var(--border-light);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.add-product-modal .mantine-TextInput-input:focus,
+.add-product-modal .mantine-NumberInput-input:focus,
+.add-product-modal .mantine-Select-input:focus,
+.add-product-modal .mantine-Textarea-input:focus {
+  border-color: var(--primary-orange);
+  box-shadow: 0 0 0 3px rgba(250, 169, 108, 0.1);
+  outline: none;
+}
+
+/* MultiSelect Styling */
+.add-product-modal .mantine-MultiSelect-input {
+  border: 1.5px solid var(--border-light);
+  border-radius: 6px;
+  min-height: 42px;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
+}
+
+.add-product-modal .mantine-MultiSelect-input:focus {
+  border-color: var(--primary-orange);
+  box-shadow: 0 0 0 3px rgba(250, 169, 108, 0.1);
+}
+
+.add-product-modal .mantine-MultiSelect-value {
+  background: var(--light-orange);
+  color: var(--text-primary);
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+/* File Input */
+.add-product-modal .mantine-FileInput-input {
+  border: 2px dashed var(--border-light);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  background: #FAFAFA;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.add-product-modal .mantine-FileInput-input:hover {
+  border-color: var(--primary-orange);
+  background: var(--light-orange);
+}
+
+.add-product-modal .mantine-FileInput-placeholder {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Textarea Specific */
+.add-product-modal .mantine-Textarea-input {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+/* Button Styling */
+.add-product-modal .mantine-Button-root {
+  border-radius: 6px;
+  font-weight: 500;
+  padding: 10px 20px;
+  height: auto;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+/* Cancel Button */
+.add-product-modal .mantine-Button-root[data-variant="default"] {
+  background: white;
+  border: 1.5px solid var(--border-light);
+  color: var(--text-secondary);
+}
+
+.add-product-modal .mantine-Button-root[data-variant="default"]:hover {
+  background: #F8F9FA;
+  border-color: var(--text-secondary);
+}
+
+/* Save Button */
+.add-product-modal .mantine-Button-root[data-color="orange"] {
+  background: linear-gradient(135deg, var(--primary-orange) 0%, #FF8A50 100%);
+  border: none;
+  color: white;
+  box-shadow: var(--shadow-light);
+}
+
+.add-product-modal .mantine-Button-root[data-color="orange"]:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px -2px rgba(250, 169, 108, 0.3);
+}
+
+/* Footer Buttons (sticky to bottom) */
+.add-product-modal form > .mantine-Group-root:last-child {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-light);
+}
+
+.add-product-modal form > .mantine-Group-root:last-child .mantine-Button-root {
+  min-width: 120px;
+}
+
+/* Improved Preview Grid & Thumbnails */
+.add-product-modal .preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+  max-width: 100%;
+}
+
+.add-product-modal .preview-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border: 2px solid var(--border-light);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #FAFAFA;
+  transition: all 0.2s ease;
+}
+
+.add-product-modal .preview-item:hover {
+  border-color: var(--primary-orange);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-light);
+}
+
+.add-product-modal .preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.add-product-modal .preview-item .remove-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 2;
+  background: rgba(224, 49, 49, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.add-product-modal .preview-item:hover .remove-btn {
+  opacity: 1;
+}
+
+.add-product-modal .preview-item .remove-btn:hover {
+  background: #E03131;
+  transform: scale(1.1);
+}
+
+/* Required Field Indicator */
+.add-product-modal .mantine-InputWrapper-required {
+  color: #E03131;
+}
+
+/* Loading State */
+.add-product-modal .mantine-Button-loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Error States */
+.add-product-modal .mantine-InputWrapper-error .mantine-TextInput-input,
+.add-product-modal .mantine-InputWrapper-error .mantine-NumberInput-input,
+.add-product-modal .mantine-InputWrapper-error .mantine-Select-input {
+  border-color: #E03131;
+}
+
+.add-product-modal .mantine-InputWrapper-error .mantine-InputWrapper-label {
+  color: #E03131;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .add-product-modal .mantine-Modal-modal {
+    margin: 10px;
+    width: calc(100% - 20px);
+    min-width: auto;
+  }
+
+  .add-product-modal .mantine-Modal-body {
+    padding: 16px;
+  }
+
+  .add-product-modal form {
+    padding: 16px;
+  }
+
+  .add-product-modal .mantine-Group-root {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .add-product-modal .mantine-Group-root > * {
+    width: 100% !important;
+    min-width: auto;
+  }
+
+  .add-product-modal .preview-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+  }
+
+  .add-product-modal .preview-item {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+/* Smooth Animations */
+.add-product-modal .mantine-Modal-modal {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus Styles for Accessibility */
+.add-product-modal button:focus-visible,
+.add-product-modal input:focus-visible,
+.add-product-modal textarea:focus-visible {
+  outline: 2px solid var(--primary-orange);
+  outline-offset: 2px;
+}

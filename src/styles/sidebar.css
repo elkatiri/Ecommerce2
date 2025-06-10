@@ -46,8 +46,10 @@
 }
 
 .sidebar-link.active {
-  background-color: #c8e8ef;
-  color: #1a73e8;
+  background: #c8e8ef;
+  color: #333;
+  border-radius: 8px;
+  font-weight: 600;
 }
 
 .sidebar-logout {

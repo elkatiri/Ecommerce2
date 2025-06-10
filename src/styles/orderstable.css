@@ -1,0 +1,488 @@
+/* ============================================
+   ENHANCED ORDERS TABLE - PROFESSIONAL CSS
+   ============================================ */
+
+/* Global Variables */
+:root {
+  --primary-blue: #2563eb;
+  --primary-blue-light: #3b82f6;
+  --primary-blue-dark: #1d4ed8;
+  --secondary-indigo: #4f46e5;
+  --success-green: #059669;
+  --warning-amber: #d97706;
+  --danger-red: #dc2626;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --white: #ffffff;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --border-radius: 16px;
+  --border-radius-md: 12px;
+  --border-radius-sm: 8px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Enhanced Status Colors */
+  --status-pending-bg: #fef3c7;
+  --status-pending-text: #92400e;
+  --status-pending-border: #f59e0b;
+  
+  --status-processing-bg: #dbeafe;
+  --status-processing-text: #1e40af;
+  --status-processing-border: #3b82f6;
+  
+  --status-shipped-bg: #e9d5ff;
+  --status-shipped-text: #7c3aed;
+  --status-shipped-border: #8b5cf6;
+  
+  --status-delivered-bg: #d1fae5;
+  --status-delivered-text: #047857;
+  --status-delivered-border: #10b981;
+  
+  --status-cancelled-bg: #fee2e2;
+  --status-cancelled-text: #dc2626;
+  --status-cancelled-border: #ef4444;
+  
+  --status-completed-bg: #ccfbf1;
+  --status-completed-text: #0d9488;
+  --status-completed-border: #059669;
+}
+
+/* Main Wrapper */
+.orders-table-wrapper {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  margin: 24px;
+  border: 1px solid var(--gray-200);
+  font-family: var(--font-family);
+}
+
+/* Header Section */
+.orders-table-header {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-indigo) 100%);
+  color: var(--white);
+  padding: 24px 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-content h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-stats {
+  display: flex;
+  gap: 32px;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stat-label {
+  display: block;
+  font-size: 12px;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+/* Table Content */
+.orders-table-content {
+  background: var(--gray-50);
+  overflow-x: auto;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  font-family: var(--font-family);
+  min-width: 1400px;
+}
+
+/* Table Header */
+.orders-table thead {
+  background: var(--gray-100);
+  border-bottom: 2px solid var(--gray-200);
+}
+
+.orders-table thead th {
+  padding: 16px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--gray-700);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--gray-200);
+  position: relative;
+  white-space: nowrap;
+}
+
+/* Column Specific Widths */
+.th-id { width: 100px; }
+.th-customer { width: 200px; }
+.th-products { width: 300px; }
+.th-quantity { width: 80px; }
+.th-total { width: 120px; }
+.th-status { width: 140px; }
+.th-date { width: 120px; }
+.th-shipping { width: 250px; }
+.th-actions { width: 120px; }
+
+/* Table Rows */
+.orders-table tbody tr {
+  border-bottom: 1px solid var(--gray-100);
+  transition: var(--transition);
+}
+
+.order-row:hover {
+  background: linear-gradient(to right, rgba(37, 99, 235, 0.02), rgba(79, 70, 229, 0.02));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.orders-table tbody td {
+  padding: 16px 12px;
+  vertical-align: middle;
+  font-size: 14px;
+  color: var(--gray-600);
+}
+
+/* Cell Specific Styling */
+.td-id .order-id {
+  font-weight: 700;
+  color: var(--primary-blue);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+}
+
+.customer-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.customer-details {
+  min-width: 0;
+}
+
+.customer-name {
+  font-weight: 600;
+  color: var(--gray-800);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.customer-id {
+  font-size: 12px;
+  color: var(--gray-500);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Products Preview */
+.products-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.product-images {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.product-image-container {
+  position: relative;
+  border: 2px solid var(--white);
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.product-image-container:not(:first-child) {
+  margin-left: -8px;
+}
+
+.more-products {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--gray-200);
+  color: var(--gray-600);
+  border-radius: var(--border-radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.product-names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.product-badge {
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Quantity Info */
+.quantity-info {
+  text-align: center;
+}
+
+.quantity-number {
+  display: block;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--primary-blue);
+}
+
+.quantity-label {
+  display: block;
+  font-size: 11px;
+  color: var(--gray-500);
+  text-transform: uppercase;
+}
+
+/* Total Amount */
+.total-amount {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--primary-blue-dark);
+  font-size: 15px;
+}
+
+/* Status Cell */
+.status-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Status Select Dropdown */
+.status-select-dropdown {
+  min-width: 120px;
+}
+
+/* Date Info */
+.date-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gray-700);
+  font-size: 13px;
+}
+
+/* Shipping Address */
+.shipping-address {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gray-700);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.action-btn.view-btn:hover {
+  background: var(--primary-blue-light);
+  color: var(--white);
+}
+
+.action-btn.delete-btn:hover {
+  background: var(--danger-red);
+  color: var(--white);
+}
+
+/* Loading Spinner */
+.table-loading {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--gray-400);
+  font-size: 16px;
+}
+
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--gray-200);
+  border-top: 3px solid var(--primary-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 8px auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  color: var(--gray-400);
+  padding: 48px 0;
+}
+
+.empty-state h3 {
+  margin: 12px 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.empty-state p {
+  font-size: 14px;
+  color: var(--gray-500);
+}
+
+/* Modal Styles */
+.order-detail-modal .mantine-Modal-body {
+  background: var(--gray-50);
+  padding: 32px;
+}
+
+.order-detail-content {
+  font-family: var(--font-family);
+}
+
+.order-header {
+  margin-bottom: 16px;
+}
+
+.modal-status-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+/* Order Sections */
+.order-section {
+  background: var(--white);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+}
+
+.product-detail-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.product-detail-item .mantine-Group-root {
+  align-items: center;
+}
+
+.product-detail-item .mantine-Image-root {
+  min-width: 36px;
+  min-height: 36px;
+  max-width: 36px;
+  max-height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  margin-right: 12px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .orders-table {
+    min-width: 900px;
+  }
+  .orders-table-wrapper {
+    margin: 8px;
+  }
+  .orders-table-header {
+    padding: 16px 12px;
+  }
+}
+
+/* Status Badge Colors (for custom badges if needed) */
+.status-badge-pending {
+  background: var(--status-pending-bg);
+  color: var(--status-pending-text);
+  border: 1px solid var(--status-pending-border);
+}
+.status-badge-processing {
+  background: var(--status-processing-bg);
+  color: var(--status-processing-text);
+  border: 1px solid var(--status-processing-border);
+}
+.status-badge-shipped {
+  background: var(--status-shipped-bg);
+  color: var(--status-shipped-text);
+  border: 1px solid var(--status-shipped-border);
+}
+.status-badge-delivered {
+  background: var(--status-delivered-bg);
+  color: var(--status-delivered-text);
+  border: 1px solid var(--status-delivered-border);
+}
+.status-badge-cancelled {
+  background: var(--status-cancelled-bg);
+  color: var(--status-cancelled-text);
+  border: 1px solid var(--status-cancelled-border);
+}
+.status-badge-completed {
+  background: var(--status-completed-bg);
+  color: var(--status-completed-text);
+  border: 1px solid var(--status-completed-border);
+}
