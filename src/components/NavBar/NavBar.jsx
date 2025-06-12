@@ -175,6 +175,10 @@ const Navbar = () => {
                     <span className="user-full-name">{user.name}</span>
                     <span className="user-email">{user.email}</span>
                   </div>
+                  <button onClick={() => navigate('/orders')} className="menu-item">
+                    <ShoppingBag size={16} />
+                    Check My Orders
+                  </button>
                   <button onClick={handleLogout} className="menu-item">
                     <LogOut size={16} />
                     Logout
@@ -202,6 +206,10 @@ const Navbar = () => {
                     <span className="user-full-name">{user.name}</span>
                     <span className="user-email">{user.email}</span>
                   </div>
+                  <button onClick={() => navigate('/orders')} className="menu-item">
+                    <ShoppingBag size={16} />
+                    Check My Orders
+                  </button>
                   <button onClick={handleLogout} className="menu-item">
                     <LogOut size={16} />
                     Logout

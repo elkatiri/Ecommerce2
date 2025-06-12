@@ -6,6 +6,7 @@
     min-height: calc(100vh - 160px);
     padding: 2rem;
     background-color: #f8f9fa;
+    margin-top: 3rem;
 }
 
 /* The form container */

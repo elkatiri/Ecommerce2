@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Truck, Shield } from 'lucide-react';
 import { clearCart } from '../../store/cartSlice';
+import { setCredentials } from '../../store/authSlice';
 import Navbar from '../../components/NavBar/NavBar';
 import Footer from '../../components/Footer/Footer';
 import './Checkout.css';
@@ -18,11 +19,11 @@ const Checkout = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
 
   useEffect(() => {
     if (cart.length === 0) navigate('/cart');
-    if (!user) navigate('/auth', { state: { from: { pathname: '/check-out' } } });
-  }, [cart.length, navigate, user]);
+  }, [cart.length, navigate]);
 
   const [formData, setFormData] = useState({
     firstName: user?.name?.split(' ')[0] || '',
@@ -32,7 +33,9 @@ const Checkout = () => {
     address: '',
     city: '',
     postalCode: '',
-    country: 'Morocco'
+    country: 'Morocco',
+    password: '',
+    password_confirmation: ''
   });
 
   const handleInputChange = (e) => {
@@ -40,9 +43,45 @@ const Checkout = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setShowConfirmation(true);
+    
+    if (!user) {
+      // Register new user
+      setIsRegistering(true);
+      try {
+        const registerData = {
+          firstname: formData.firstName,
+          lastname: formData.lastName,
+          email: formData.email,
+          password: formData.password,
+          password_confirmation: formData.password_confirmation
+        };
+
+        const response = await axios.post('http://localhost:8000/api/register', registerData);
+        const { access_token, user: newUser } = response.data;
+
+        // Store auth data
+        localStorage.setItem('token', access_token);
+        dispatch(setCredentials({
+          user: {
+            id: newUser.id,
+            name: newUser.name,
+            email: newUser.email,
+          },
+          token: access_token
+        }));
+
+        setIsRegistering(false);
+        setShowConfirmation(true);
+      } catch (error) {
+        setError(error.response?.data?.message || 'Registration failed. Please try again.');
+        setIsRegistering(false);
+        return;
+      }
+    } else {
+      setShowConfirmation(true);
+    }
   };
 
   const confirmOrder = async () => {
@@ -53,19 +92,20 @@ const Checkout = () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        setError('No authentication token found. Please login again.');
+        setError('No authentication token found. Please try again.');
         setShowConfirmation(false);
         return;
       }
 
-      if (!user?.id) {
-        setError('User information not found. Please try logging in again.');
+      const currentUser = user || JSON.parse(localStorage.getItem('user'));
+      if (!currentUser?.id) {
+        setError('User information not found. Please try again.');
         setShowConfirmation(false);
         return;
       }
 
       const orderData = {
-        user_id: user.id,
+        user_id: currentUser.id,
         total_price: total,
         status: 'pending',
         shipping_address: `${formData.address}, ${formData.city}, ${formData.postalCode}, ${formData.country}`,
@@ -97,6 +137,7 @@ const Checkout = () => {
       setIsLoading(false);
     }
   };
+
   const cancelOrder = () => setShowConfirmation(false);
 
   if (cart.length === 0) return null;
@@ -111,7 +152,7 @@ const Checkout = () => {
           <div className="checkout-form-container">
             <form onSubmit={handleSubmit} className="checkout-form">
               <div className="form-step">
-                <h2>Shipping Information</h2>
+                <h2>{!user ? 'Create Account & Shipping Information' : 'Shipping Information'}</h2>
 
                 <div className="form-row">
                   <div className="form-group">
@@ -123,7 +164,6 @@ const Checkout = () => {
                       value={formData.firstName} 
                       onChange={handleInputChange} 
                       required 
-                      readOnly={!!user}
                     />
                   </div>
                   <div className="form-group">
@@ -135,7 +175,6 @@ const Checkout = () => {
                       value={formData.lastName} 
                       onChange={handleInputChange} 
                       required 
-                      readOnly={!!user}
                     />
                   </div>
                 </div>
@@ -150,7 +189,6 @@ const Checkout = () => {
                       value={formData.email} 
                       onChange={handleInputChange} 
                       required 
-                      readOnly={!!user}
                     />
                   </div>
                   <div className="form-group">
@@ -165,6 +203,33 @@ const Checkout = () => {
                     />
                   </div>
                 </div>
+
+                {!user && (
+                  <>
+                    <div className="form-group">
+                      <label htmlFor="password">Password</label>
+                      <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        value={formData.password} 
+                        onChange={handleInputChange} 
+                        required 
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="password_confirmation">Confirm Password</label>
+                      <input 
+                        type="password" 
+                        id="password_confirmation" 
+                        name="password_confirmation" 
+                        value={formData.password_confirmation} 
+                        onChange={handleInputChange} 
+                        required 
+                      />
+                    </div>
+                  </>
+                )}
 
                 <div className="form-group">
                   <label htmlFor="address">Address</label>
@@ -216,7 +281,13 @@ const Checkout = () => {
                   </select>
                 </div>
 
-                <button type="submit" className="submit-order">Place Order</button>
+                <button 
+                  type="submit" 
+                  className="submit-order"
+                  disabled={isLoading || isRegistering}
+                >
+                  {isLoading ? 'Processing...' : isRegistering ? 'Creating Account...' : 'Place Order'}
+                </button>
               </div>
             </form>
           </div>
