@@ -18,6 +18,7 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import AddProductModal from './addproduct';
+import { Package } from 'lucide-react';
 
 export default function ProductTable() {
   const [products, setProducts] = useState([]);
@@ -26,12 +27,15 @@ export default function ProductTable() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editedProduct, setEditedProduct] = useState(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchProducts = () => {
+    setLoading(true);
     axios
       .get('http://127.0.0.1:8000/api/products')
       .then((res) => setProducts(res.data))
-      .catch((err) => console.error(err));
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
   };
 
   const fetchCategories = () => {
@@ -105,82 +109,98 @@ export default function ProductTable() {
           </tr>
         </thead>
         <tbody>
-          {products.map((p) => {
-            const discount = parseFloat(p.discount || 0);
-            const final = (parseFloat(p.price) - discount).toFixed(2);
-            return (
-              <tr key={p.id}>
-                <td>#{p.id}</td>
-                <td className="product-cell">
-                  <div className="product-img-group">
-                    {p.images.slice(0, 3).map((img, i) => (
-                      <img
-                        key={i}
-                        src={`http://127.0.0.1:8000/storage/${img.image_path}`}
-                        alt={`prod-${p.id}`}
-                        className="product-img"
-                      />
-                    ))}
-                    {p.images.length > 3 && (
-                      <div className="image-count">+{p.images.length - 3}</div>
+          {loading ? (
+            <tr>
+              <td colSpan={9} className="loading-row">
+                <div className="loader"></div>
+              </td>
+            </tr>
+          ) : products.length === 0 ? (
+            <tr>
+              <td colSpan={9} className="empty-state">
+                <Package size={48} />
+                <h3>No Products Found</h3>
+                <p>Products will appear here once you add them to your store.</p>
+              </td>
+            </tr>
+          ) : (
+            products.map((p) => {
+              const discount = parseFloat(p.discount || 0);
+              const final = (parseFloat(p.price) - discount).toFixed(2);
+              return (
+                <tr key={p.id}>
+                  <td>#{p.id}</td>
+                  <td className="product-cell">
+                    <div className="product-img-group">
+                      {p.images.slice(0, 3).map((img, i) => (
+                        <img
+                          key={i}
+                          src={`http://127.0.0.1:8000/storage/${img.image_path}`}
+                          alt={`prod-${p.id}`}
+                          className="product-img"
+                        />
+                      ))}
+                      {p.images.length > 3 && (
+                        <div className="image-count">+{p.images.length - 3}</div>
+                      )}
+                    </div>
+                    <div>
+                      <div className="name">{p.name}</div>
+                      <div className="category">{p.category?.name || '—'}</div>
+                    </div>
+                  </td>
+                  <td>{p.quantity}</td>
+                  <td>{new Date(p.created_at).toLocaleDateString()}</td>
+                  <td>${parseFloat(p.price).toFixed(2)}</td>
+                  <td>${discount.toFixed(2)}</td>
+                  <td>${final}</td>
+                  <td>
+                    {p.colors.length ? (
+                      p.colors.map((c) => (
+                        <Badge
+                          key={c.id}
+                          color={c.color}
+                          variant="light"
+                          style={{ marginRight: 4, textTransform: 'capitalize' }}
+                        >
+                          {c.color}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span>—</span>
                     )}
-                  </div>
-                  <div>
-                    <div className="name">{p.name}</div>
-                    <div className="category">{p.category?.name || '—'}</div>
-                  </div>
-                </td>
-                <td>{p.quantity}</td>
-                <td>{new Date(p.created_at).toLocaleDateString()}</td>
-                <td>${parseFloat(p.price).toFixed(2)}</td>
-                <td>${discount.toFixed(2)}</td>
-                <td>${final}</td>
-                <td>
-                  {p.colors.length ? (
-                    p.colors.map((c) => (
-                      <Badge
-                        key={c.id}
-                        color={c.color}
-                        variant="light"
-                        style={{ marginRight: 4, textTransform: 'capitalize' }}
-                      >
-                        {c.color}
-                      </Badge>
-                    ))
-                  ) : (
-                    <span>—</span>
-                  )}
-                </td>
-                <td className="action-buttons">
-                  <Pencil
-                    size={16}
-                    className="edit"
-                    onClick={() =>
-                      setEditedProduct({
-                        ...p,
-                        category_id: p.category?.id || '',
-                        colors: Array.isArray(p.colors)
-                          ? p.colors.map((col) => col.color)
-                          : [],
-                        newImages: [],
-                        imagesToDelete: [],
-                      })
-                    }
-                  />
-                  <Trash2
-                    size={16}
-                    className="delete"
-                    onClick={() => handleDelete(p.id)}
-                  />
-                  <Eye
-                    size={16}
-                    className="view"
-                    onClick={() => handleShow(p)}
-                  />
-                </td>
-              </tr>
-            );
-          })}
+                  </td>
+                  <td className="action-buttons">
+                    <Pencil
+                      size={16}
+                      className="edit"
+                      onClick={() =>
+                        setEditedProduct({
+                          ...p,
+                          category_id: p.category?.id || '',
+                          colors: Array.isArray(p.colors)
+                            ? p.colors.map((col) => col.color)
+                            : [],
+                          newImages: [],
+                          imagesToDelete: [],
+                        })
+                      }
+                    />
+                    <Trash2
+                      size={16}
+                      className="delete"
+                      onClick={() => handleDelete(p.id)}
+                    />
+                    <Eye
+                      size={16}
+                      className="view"
+                      onClick={() => handleShow(p)}
+                    />
+                  </td>
+                </tr>
+              );
+            })
+          )}
         </tbody>
       </table>
 

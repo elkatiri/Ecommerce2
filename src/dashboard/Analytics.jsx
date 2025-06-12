@@ -22,6 +22,8 @@ import {
   Calendar as CalendarIcon,
   Star,
   PieChart,
+  BarChart3,
+  Activity,
 } from 'lucide-react';
 import '../styles/chartAnalytics.css';
 
@@ -99,7 +101,7 @@ const RevenueSparklineChart = ({ data, monthLabels, orders }) => {
               color: '#64748b',
               flex: '1',
               textAlign: 'center',
-              minWidth: '40px', // Added minimum width
+              minWidth: '40px',
               whiteSpace: 'nowrap'
             }}
           >
@@ -382,256 +384,229 @@ export default function Analytics() {
         </Grid>
       </Paper>
 
-      {/* ===== Orders by Month ===== */}
-      <div className="chart-container analytics-chart">
-        <Title order={4} mb="md">Orders by Month</Title>
-        <BarChart
-          h={300}
-          data={chartData}
-          dataKey="month"
-          series={[{ name:'Delivered',color:'#22c55e'},{name:'Returned',color:'#ef4444'}]}
-          barSize={40}
-          tooltipProps={{ shared:true, content:CustomTooltip }}
-          yAxisProps={{ domain:[0,'dataMax'], stroke:'#E5E7EB' }}
-          xAxisProps={{ stroke:'#E5E7EB' }}
-          gridProps={{ vertical:false,horizontal:true,stroke:'#E5E7EB',opacity:0.5 }}
-          withLegend={false}
-          style={{
-          overflow: 'visible',
-          '--chart-cursor-fill': '#f1f5f9',
-          '--chart-grid-color' : '#e2e8f0',
-          '--chart-text-color' : '#64748b',
-        }}
-        />
-      </div>
-
-      {/* ===== Orders by Category ===== */}
-      <Paper p="md" shadow="sm" mt="lg">
-        <Group mb="md">
-          <ThemeIcon size="lg" radius="md" variant="light" color="purple">
-            <PieChart size={20} />
-          </ThemeIcon>
-          <Title order={4}>Orders by Category</Title>
-        </Group>
-        <Grid columns={2} gutter="md">
-          <Grid.Col span={1}>
-            <Card withBorder p="lg" shadow="sm">
-              <Group position="apart" mb="xs">
-                <Text size="lg" c="dimmed">Top Category</Text>
-                <PieChart size={20} color="#8b5cf6" />
-              </Group>
-              <Text size="2xl" fw={700} c="purple">
-                {topCategory.name}
-              </Text>
-              <Text size="xs" c="dimmed">
-                {topCategory.value} units ordered
-              </Text>
-            </Card>
-          </Grid.Col>
-          <Grid.Col span={1}>
-            <Card withBorder p="lg" shadow="sm">
-              <Group position="apart" mb="xs">
-                <Text size="lg" c="dimmed">Categories</Text>
-                <Badge color="purple" variant="light">
-                  {categoryData.length}
-                </Badge>
-              </Group>
-              <Text size="2xl" fw={700} c="blue">
-                {categoryData.length} Categories
-              </Text>
-              <Text size="xs" c="dimmed">
-                active product categories
-              </Text>
-            </Card>
-          </Grid.Col>
-        </Grid>
-
-        {/* Donut Chart with Enhanced Tooltip */}
-        <div style={{ marginTop: '24px' }}>
-          {categoryData.length > 0 ? (
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'flex-start',
-              width: '100%',
-              height: '400px'
-            }}>
-              <DonutChart
-                data={categoryData}
-                withLabels={true}
-                withTooltip={true}
-                labelsType="percent" 
-                tooltipDataSource="segment"
-                size={300}
-                thickness={50}
-                strokeWidth={1}
-                paddingAngle={2}
-                mx="auto"
-                style={{ 
-                  width: 550, 
-                  height: 500,
-                  cursor: 'pointer'
-                }}
-                tooltipProps={{
-                  content: (props) => <DonutTooltip {...props} categoryData={categoryData} />,
-                  wrapperStyle: { zIndex: 1000 }
-                }}
-              />
-            </div>
-          ) : (
-            <Card withBorder p="xl" shadow="sm" style={{ width: '100%', textAlign: 'center' }}>
-              <Text c="dimmed">No category data available</Text>
-            </Card>
-          )}
-        </div>
-
-        {/* Category Legend */}
-        {categoryData.length > 0 && (
-          <div style={{ marginTop: '80px' }}>
-            <Text size="sm" fw={500} mb="md">Category Breakdown:</Text>
-            <Grid gutter="xs">
-              {categoryData.map((category, index) => (
-                <Grid.Col span={6} key={category.name}>
-                  <Group spacing={8} style={{ justifyContent: 'flex-start' }}>
-                    <div 
-                      style={{ 
-                        width: 12, 
-                        height: 12, 
-                        borderRadius: '50%', 
-                        backgroundColor: category.color 
-                      }} 
-                    />
-                    <Text size="sm" style={{ marginRight: 8 }}>
-                      {category.name}
-                    </Text>
-                    <Text size="sm" fw={500} c="dimmed">
-                      {category.value} units
-                    </Text>
-                  </Group>
-                </Grid.Col>
-              ))}
-            </Grid>
-          </div>
-        )}
-      </Paper>
-
-      {/* ===== Revenue Analysis ===== */}
-      <Paper p="md" shadow="sm" mt="lg">
-        <Group mb="md">
-          <ThemeIcon size="lg" radius="md" variant="light" color="green">
-            <DollarSign size={20} />
-          </ThemeIcon>
-          <Title order={4}>Revenue Analysis</Title>
-        </Group>
-        <Grid columns={2} gutter="md">
-          <Grid.Col span={1}>
-            <Card withBorder p="lg" shadow="sm">
-              <Group position="apart" mb="xs">
-                <Text size="lg" c="dimmed">Total Revenue</Text>
-                <DollarSign size={20} color="#16a34a" />
-              </Group>
-              <Text size="2xl" fw={700} c="green">
-                ${totalRevenue.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
-              </Text>
-              <Text size="xs" c="dimmed">from delivered orders</Text>
-            </Card>
-          </Grid.Col>
-          <Grid.Col span={1}>
-            <Card withBorder p="lg" shadow="sm">
-              <Group position="apart" mb="xs">
-                <Text size="lg" c="dimmed">Top Revenue Month</Text>
-                <CalendarIcon size={20} color="#2563eb" />
-              </Group>
-              <Text size="2xl" fw={700} c="blue">
-                {topMonth} – ${topMonthValue.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
-              </Text>
-              <Text size="xs" c="dimmed">highest monthly revenue</Text>
-            </Card>
-          </Grid.Col>
-        </Grid>
-
-        {/* Sparkline Chart */}
-        <div style={{ marginTop: '24px' }}>
-          <RevenueSparklineChart data={revenueData} monthLabels={monthLabels} orders={orders} />
-        </div>
-      </Paper>
-
-      {/* ===== Top Products ===== */}
-      <Paper p="md" shadow="sm" mt="lg">
-        <Group mb="md">
-          <ThemeIcon size="lg" radius="md" variant="light" color="yellow">
-            <Star size={20} />
-          </ThemeIcon>
-          <Title order={4}>Best Seller Products</Title>
-        </Group>
-        
-        <Card withBorder p="lg" shadow="sm">
-          <Group position="apart" mb="md">
-            <Group spacing="xs">
-              {[1,2,3,4].map(i => <Star key={i} size={16} fill="#fbbf24" color="#fbbf24" />)}
-              <Star size={16} color="#fbbf24" />
+      {/* ===== Charts Grid - Two Charts Per Row ===== */}
+      <div className="charts-grid">
+        {/* Row 1: Orders by Month + Revenue Analysis */}
+        <div className="charts-row">
+          {/* Orders by Month Chart */}
+          <div className="chart-container">
+            <Group mb="md">
+              <ThemeIcon size="lg" radius="md" variant="light" color="blue">
+                <BarChart3 size={20} />
+              </ThemeIcon>
+              <Title order={4}>Orders by Month</Title>
             </Group>
-            <Text size="lg" fw={700}>
-              {topProducts.length > 0 ? (topProducts[0].totalQuantity / topProducts.reduce((sum, p) => sum + p.totalQuantity, 0) * 5).toFixed(1) : '0.0'} out of 5 star
-            </Text>
-          </Group>
+            <BarChart
+              h={280}
+              data={chartData}
+              dataKey="month"
+              series={[{ name:'Delivered',color:'#22c55e'},{name:'Returned',color:'#ef4444'}]}
+              barSize={30}
+              tooltipProps={{ shared:true, content:CustomTooltip }}
+              yAxisProps={{ domain:[0,'dataMax'], stroke:'#E5E7EB' }}
+              xAxisProps={{ stroke:'#E5E7EB' }}
+              gridProps={{ vertical:false,horizontal:true,stroke:'#E5E7EB',opacity:0.5 }}
+              withLegend={false}
+              style={{
+                overflow: 'visible',
+                '--chart-cursor-fill': '#f1f5f9',
+                '--chart-grid-color' : '#e2e8f0',
+                '--chart-text-color' : '#64748b',
+              }}
+            />
+          </div>
 
-          <div style={{ marginTop: '20px' }}>
-            {topProducts.map((product, index) => {
-              const progressConfig = [
-                { color: 'green', label: 'Excellent' },
-                { color: 'teal', label: 'Good' },
-                { color: 'yellow', label: 'Average' },
-                { color: 'orange', label: 'Avg-below' },
-                { color: 'red', label: 'Poor' }
-              ];
-              
-              const config = progressConfig[index] || progressConfig[4];
-              
-              return (
-                <div key={product.id} style={{ marginBottom: '16px' }}>
+          {/* Revenue Analysis Chart */}
+          <div className="chart-container">
+            <Group mb="md">
+              <ThemeIcon size="lg" radius="md" variant="light" color="green">
+                <Activity size={20} />
+              </ThemeIcon>
+              <Title order={4}>Revenue Trend</Title>
+            </Group>
+            <Grid columns={2} gutter="sm" mb="md">
+              <Grid.Col span={1}>
+                <Card withBorder p="sm" shadow="sm">
                   <Group position="apart" mb="xs">
-                    <Group spacing="xs">
-                      <Text size="sm" fw={500} style={{ 
-                        maxWidth: '180px', 
-                        whiteSpace: 'nowrap', 
-                        overflow: 'hidden', 
-                        textOverflow: 'ellipsis' 
-                      }}>
-                        {product.name}
-                      </Text>
-                      <Badge 
-                        color={config.color} 
-                        variant="light" 
-                        size="xs"
-                      >
-                        {config.label}
-                      </Badge>
-                    </Group>
-                    <Text size="xs" c="dimmed">
-                      {product.totalQuantity} units
-                    </Text>
+                    <Text size="xs" c="dimmed">Total Revenue</Text>
+                    <DollarSign size={14} color="#16a34a" />
                   </Group>
-                  <Progress
-                    value={product.percentage}
-                    color={config.color}
-                    size="md"
-                    radius="sm"
-                    striped={index === 0}
-                    animated={index === 0}
-                  />
-                </div>
-              );
-            })}
+                  <Text size="md" fw={700} c="green">
+                    ${totalRevenue.toLocaleString(undefined,{maximumFractionDigits:0})}
+                  </Text>
+                </Card>
+              </Grid.Col>
+              <Grid.Col span={1}>
+                <Card withBorder p="sm" shadow="sm">
+                  <Group position="apart" mb="xs">
+                    <Text size="xs" c="dimmed">Peak Month</Text>
+                    <CalendarIcon size={14} color="#2563eb" />
+                  </Group>
+                  <Text size="md" fw={700} c="blue">
+                    {topMonth}
+                  </Text>
+                </Card>
+              </Grid.Col>
+            </Grid>
+            <RevenueSparklineChart data={revenueData} monthLabels={monthLabels} orders={orders} />
+          </div>
+        </div>
+
+        {/* Row 2: Category Distribution + Best Sellers */}
+        <div className="charts-row">
+          {/* Category Distribution Chart */}
+          <div className="chart-container">
+            <Group mb="md">
+              <ThemeIcon size="lg" radius="md" variant="light" color="purple">
+                <PieChart size={20} />
+              </ThemeIcon>
+              <Title order={4}>Category Distribution</Title>
+            </Group>
+            <Grid columns={2} gutter="sm" mb="md">
+              <Grid.Col span={1}>
+                <Card withBorder p="sm" shadow="sm">
+                  <Group position="apart" mb="xs">
+                    <Text size="xs" c="dimmed">Top Category</Text>
+                    <PieChart size={14} color="#8b5cf6" />
+                  </Group>
+                  <Text size="md" fw={700} c="purple">
+                    {topCategory.name}
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    {topCategory.value} units
+                  </Text>
+                </Card>
+              </Grid.Col>
+              <Grid.Col span={1}>
+                <Card withBorder p="sm" shadow="sm">
+                  <Group position="apart" mb="xs">
+                    <Text size="xs" c="dimmed">Categories</Text>
+                    <Badge color="purple" variant="light" size="xs">
+                      {categoryData.length}
+                    </Badge>
+                  </Group>
+                  <Text size="md" fw={700} c="blue">
+                    {categoryData.length}
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    active categories
+                  </Text>
+                </Card>
+              </Grid.Col>
+            </Grid>
             
-            {topProducts.length === 0 && (
-              <Text c="dimmed" ta="center" py="xl">
-                No product data available
-              </Text>
+            {categoryData.length > 0 ? (
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center',
+                height: '250px'
+              }}>
+                <DonutChart
+                  data={categoryData}
+                  withLabels={true}
+                  withTooltip={true}
+                  labelsType="percent" 
+                  tooltipDataSource="segment"
+                  size={180}
+                  thickness={30}
+                  strokeWidth={2}
+                  paddingAngle={3}
+                  style={{ 
+                    width: '100%', 
+                    height: '100%',
+                    cursor: 'pointer'
+                  }}
+                  tooltipProps={{
+                    content: (props) => <DonutTooltip {...props} categoryData={categoryData} />
+                  }}
+                />
+              </div>
+            ) : (
+              <Card withBorder p="xl" shadow="sm" style={{ textAlign: 'center', height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Text c="dimmed">No category data available</Text>
+              </Card>
             )}
           </div>
-        </Card>
-      </Paper>
+
+          {/* Best Sellers Chart */}
+          <div className="chart-container">
+            <Group mb="md">
+              <ThemeIcon size="lg" radius="md" variant="light" color="yellow">
+                <Star size={20} />
+              </ThemeIcon>
+              <Title order={4}>Best Seller Products</Title>
+            </Group>
+            
+            <Card withBorder p="md" shadow="sm" style={{ height: '300px', overflow: 'auto' }}>
+              <Group position="apart" mb="md">
+                <Group spacing="xs">
+                  {[1,2,3,4].map(i => <Star key={i} size={14} fill="#fbbf24" color="#fbbf24" />)}
+                  <Star size={14} color="#fbbf24" />
+                </Group>
+                <Text size="sm" fw={700}>
+                  {topProducts.length > 0 ? (topProducts[0].totalQuantity / topProducts.reduce((sum, p) => sum + p.totalQuantity, 0) * 5).toFixed(1) : '0.0'}/5
+                </Text>
+              </Group>
+
+              <div>
+                {topProducts.map((product, index) => {
+                  const progressConfig = [
+                    { color: 'green', label: 'Excellent' },
+                    { color: 'teal', label: 'Good' },
+                    { color: 'yellow', label: 'Average' },
+                    { color: 'orange', label: 'Below Avg' },
+                    { color: 'red', label: 'Poor' }
+                  ];
+                  
+                  const config = progressConfig[index] || progressConfig[4];
+                  
+                  return (
+                    <div key={product.id} style={{ marginBottom: '12px' }}>
+                      <Group position="apart" mb="xs">
+                        <Group spacing="xs">
+                          <Text size="xs" fw={500} style={{ 
+                            maxWidth: '120px', 
+                            whiteSpace: 'nowrap', 
+                            overflow: 'hidden', 
+                            textOverflow: 'ellipsis' 
+                          }}>
+                            {product.name}
+                          </Text>
+                          <Badge 
+                            color={config.color} 
+                            variant="light" 
+                            size="xs"
+                          >
+                            {config.label}
+                          </Badge>
+                        </Group>
+                        <Text size="xs" c="dimmed">
+                          {product.totalQuantity}
+                        </Text>
+                      </Group>
+                      <Progress
+                        value={product.percentage}
+                        color={config.color}
+                        size="sm"
+                        radius="sm"
+                        striped={index === 0}
+                        animated={index === 0}
+                      />
+                    </div>
+                  );
+                })}
+                
+                {topProducts.length === 0 && (
+                  <Text c="dimmed" ta="center" py="xl">
+                    No product data available
+                  </Text>
+                )}
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
