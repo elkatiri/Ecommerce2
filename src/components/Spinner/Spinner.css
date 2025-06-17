@@ -1,7 +1,14 @@
+/* Spinner.css */
+
+/* the generic container, no forced height */
 .spinner-container {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+/* only when you want the big, full-page loader */
+.spinner-container.overlay {
   min-height: 200px;
 }
 
@@ -15,10 +22,5 @@
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-} 
+  to { transform: rotate(360deg); }
+}

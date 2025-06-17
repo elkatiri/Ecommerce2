@@ -1,12 +1,11 @@
+// Spinner.jsx
 import React from 'react';
 import './Spinner.css';
 
-const Spinner = () => {
+export default function Spinner({ overlay = false, className = '' }) {
   return (
-    <div className="spinner-container">
-      <div className="spinner"></div>
+    <div className={`spinner-container ${overlay ? 'overlay' : ''} ${className}`}>
+      <div className="spinner" />
     </div>
   );
-};
-
-export default Spinner; 
+}

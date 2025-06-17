@@ -68,6 +68,9 @@
 
 /* Button style */
 .submit-btn {
+    display: flex;              /* new */
+    justify-content: center;    /* new */
+    align-items: center;        /* new */
     width: 100%;
     padding: 0.75rem;
     background-color: #000;
@@ -80,6 +83,7 @@
     transition: all 0.2s ease;
     margin-top: 1rem;
 }
+
 
 .submit-btn:hover:not(:disabled) {
     background-color: #333;
@@ -169,4 +173,20 @@
     .form-title {
         font-size: 1.5rem;
     }
+}
+/* when Spinner is rendered inside .submit-btn.loading */
+.submit-btn.loading .spinner-container {
+  /* remove big height */
+  min-height: 0;
+  /* force a small square */
+  width: 1rem;
+  height: 1rem;
+}
+
+.submit-btn.loading .spinner {
+  width: 0.75rem;
+  height: 0.75rem;
+  /* make the border a bit thinner now that the circle is smaller */
+  border-width: 1px;
+  border-top-width: 1px;
 }

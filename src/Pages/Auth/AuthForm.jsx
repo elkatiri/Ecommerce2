@@ -226,17 +226,20 @@ const AuthForm = () => {
               </div>
             )}
 
-            <button
-              type="submit"
-              className={`submit-btn ${loading ? "loading" : ""}`}
-              disabled={loading}
-            >
-              {loading
-                ? <Spinner />
-                : isLogin
-                  ? "Sign In"
-                  : "Create Account"}
-            </button>
+           
+
+      <button
+        type="submit"
+        className={`submit-btn ${loading ? "loading" : ""}`}
+        disabled={loading}
+      >
+        {loading
+          ? <Spinner /* no overlay here! */ />
+          : isLogin
+            ? "Sign In"
+            : "Create Account"}
+      </button>
+
           </form>
 
           <button
