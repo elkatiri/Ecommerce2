@@ -1,6 +1,6 @@
 import { AppShellNavbar } from '@mantine/core';
 import '../styles/sidebar.css';
-import { Boxes, ChartNoAxesCombined, LayoutDashboard, LogOut, ShoppingBag } from 'lucide-react';
+import { Boxes, ChartNoAxesCombined, LayoutDashboard, LogOut, MessageSquareMore, ShoppingBag } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom'; // Add useLocation
 
 const Sidebar = () => {
@@ -21,8 +21,8 @@ const Sidebar = () => {
           <ChartNoAxesCombined size={18} /><span>anlaytics</span>
         </div>
         <div
-          className={`sidebar-link${location.pathname === '/orders' ? ' active' : ''}`}
-          onClick={() => navigate('/orders')}
+          className={`sidebar-link${location.pathname === '/dashboard/orders' ? ' active' : ''}`}
+          onClick={() => navigate('/dashboard/orders')}
           style={{ cursor: 'pointer' }}
         >
           <ShoppingBag size={18} /><span>orders</span>
@@ -34,9 +34,17 @@ const Sidebar = () => {
         >
           <Boxes size={18} /><span>products</span>
         </div>
+        
+        <div
+          className={`sidebar-link${location.pathname === '/messages' ? ' active' : ''}`}
+          onClick={() => navigate('/messages')}
+          style={{ cursor: 'pointer' }}
+        >
+          <MessageSquareMore size={18} /><span>messages</span>
+        </div>
       </div>
 
-      <div className="sidebar-logout" onClick={() => navigate('/login')}>
+      <div className="sidebar-logout" onClick={() => navigate('/home')}>
         <LogOut size={18} color="red" />
         <span className="logout-text">Log Out</span>
       </div>

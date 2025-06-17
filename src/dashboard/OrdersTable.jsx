@@ -16,7 +16,7 @@ import {
   Card,
   Select
 } from '@mantine/core';
-import { Eye, Trash2, User, Package, MapPin, Calendar, DollarSign } from 'lucide-react';
+import { Eye, Trash2, User, Package, MapPin, Calendar, DollarSign, AlertCircle, X } from 'lucide-react';
 import { notifications } from '@mantine/notifications';
 import '../styles/orderstable.css';
 
@@ -25,6 +25,14 @@ export default function OrdersTable() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({ 
+    isOpen: false, 
+    orderId: null, 
+    orderNumber: '',
+    customerName: '',
+    totalPrice: 0
+  });
+  const [deletingIds, setDeletingIds] = useState(new Set());
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -47,22 +55,52 @@ export default function OrdersTable() {
     fetchOrders();
   }, []);
 
-  const handleDelete = async (orderId) => {
-    if (!window.confirm('Are you sure you want to delete this order?')) return;
+  const openDeleteModal = (order) => {
+    setDeleteModal({ 
+      isOpen: true, 
+      orderId: order.id, 
+      orderNumber: String(order.id).padStart(4, '0'),
+      customerName: order.user?.name || 'Unknown User',
+      totalPrice: parseFloat(order.total_price).toFixed(2)
+    });
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal({ 
+      isOpen: false, 
+      orderId: null, 
+      orderNumber: '',
+      customerName: '',
+      totalPrice: 0
+    });
+  };
+
+  const handleDelete = async () => {
+    const orderId = deleteModal.orderId;
+    if (!orderId) return;
+
+    setDeletingIds(prev => new Set(prev).add(orderId));
+    closeDeleteModal();
+
     try {
       await axios.delete(`http://127.0.0.1:8000/api/orders/${orderId}`);
-      notifications.show({ 
-        title: 'Success', 
-        message: 'Order deleted successfully', 
-        color: 'green' 
+      setOrders(prev => prev.filter(order => order.id !== orderId));
+      notifications.show({
+        title: '✅ Order Deleted',
+        message: 'Order was deleted successfully.',
+        color: 'teal',
       });
-      fetchOrders();
-    } catch (err) {
-      console.error(err);
-      notifications.show({ 
-        title: 'Error', 
-        message: 'Failed to delete order', 
-        color: 'red' 
+    } catch (error) {
+      notifications.show({
+        title: '❌ Delete Failed',
+        message: 'Failed to delete order.',
+        color: 'red',
+      });
+    } finally {
+      setDeletingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(orderId);
+        return newSet;
       });
     }
   };
@@ -197,246 +235,324 @@ export default function OrdersTable() {
   });
 
   return (
-    <div className="orders-table-wrapper">
-      <div className="orders-table-header">
-        <div className="header-content">
-          <h2>
-            <Package size={24} />
-            Orders Management
-          </h2>
-          <div className="header-stats">
-            <div className="stat-item">
-              <span className="stat-number">{orders.length}</span>
-              <span className="stat-label">Total Orders</span>
+    <>
+      <div className="main-wrapper">
+        <div className="orders-table-wrapper">
+          <div className="orders-table-header">
+            <div className="header-content">
+              <h2>
+                <Package size={24} />
+                Orders Management
+              </h2>
+              <div className="header-stats">
+                <div className="stat-item">
+                  <span className="stat-number">{orders.length}</span>
+                  <span className="stat-label">Total Orders</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-number">
+                    ${orders.reduce((sum, order) => sum + parseFloat(order.total_price || 0), 0).toFixed(2)}
+                  </span>
+                  <span className="stat-label">Total Revenue</span>
+                </div>
+              </div>
             </div>
-            <div className="stat-item">
-              <span className="stat-number">
-                ${orders.reduce((sum, order) => sum + parseFloat(order.total_price || 0), 0).toFixed(2)}
-              </span>
-              <span className="stat-label">Total Revenue</span>
-            </div>
+          </div>
+
+          <div className="orders-table-content">
+            <ScrollArea>
+              <table className="orders-table">
+                <thead>
+                  <tr>
+                    <th className="th-id">Order ID</th>
+                    <th className="th-customer">Customer</th>
+                    <th className="th-products">Products</th>
+                    <th className="th-quantity">Items</th>
+                    <th className="th-total">Total Amount</th>
+                    <th className="th-status">Status</th>
+                    <th className="th-date">Date</th>
+                    <th className="th-shipping">Shipping Address</th>
+                    <th className="th-actions">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={9} className="table-loading">
+                        <div className="loading-spinner"></div>
+                        <span>Loading orders...</span>
+                      </td>
+                    </tr>
+                  ) : orders.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="empty-state">
+                        <Package size={48} />
+                        <h3>No Orders Found</h3>
+                        <p>Orders will appear here once customers start placing them.</p>
+                      </td>
+                    </tr>
+                  ) : (
+                    orders.map((order) => (
+                      <tr key={order.id} className="order-row">
+                        <td className="td-id">
+                          <div className="order-id">
+                            #{String(order.id).padStart(4, '0')}
+                          </div>
+                        </td>
+                        <td className="td-customer">
+                          <div className="customer-info">
+                            <Avatar size="sm" color="blue" radius="xl">
+                              <User size={16} />
+                            </Avatar>
+                            <div className="customer-details">
+                              <div className="customer-name">
+                                {order.user?.name || 'Unknown User'}
+                              </div>
+                              <div className="customer-id">
+                                ID: {order.user_id}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="td-products">
+                          <div className="products-preview">
+                            <div className="product-images" style={{ 
+                              display: 'flex', 
+                              flexDirection: 'row', 
+                              alignItems: 'center',
+                              gap: '4px',
+                              flexWrap: 'nowrap'
+                            }}>
+                              {order.products.slice(0, 3).map((product) => (
+                                <Tooltip 
+                                  key={product.id} 
+                                  label={`${product.name} (Qty: ${product.pivot.quantity})`}
+                                >
+                                  <div className="product-image-container" style={{
+                                    flexShrink: 0,
+                                    width: '36px',
+                                    height: '36px'
+                                  }}>
+                                    <Image
+                                      src={
+                                        product.images && product.images.length > 0
+                                          ? `http://127.0.0.1:8000/storage/${product.images[0].image_path}`
+                                          : '/api/placeholder/36/36'
+                                      }
+                                      alt={product.name}
+                                      width={36}
+                                      height={36}
+                                      radius="md"
+                                      fallbackSrc="/api/placeholder/36/36"
+                                    />
+                                  </div>
+                                </Tooltip>
+                              ))}
+                              {order.products.length > 3 && (
+                                <div className="more-products" style={{
+                                  flexShrink: 0,
+                                  width: '36px',
+                                  height: '36px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  backgroundColor: '#f8f9fa',
+                                  borderRadius: '6px',
+                                  fontSize: '12px',
+                                  fontWeight: '500',
+                                  color: '#6c757d'
+                                }}>
+                                  +{order.products.length - 3}
+                                </div>
+                              )}
+                            </div>
+                            <div className="product-names" style={{ marginTop: '8px' }}>
+                              {order.products.slice(0, 2).map((product, index) => (
+                                <div key={product.id} style={{ 
+                                  display: 'flex', 
+                                  flexDirection: 'column', 
+                                  alignItems: 'flex-start',
+                                  marginBottom: '4px'
+                                }}>
+                                  <Badge
+                                    variant="light"
+                                    size="xs"
+                                    className="product-badge"
+                                  >
+                                    {product.name}
+                                  </Badge>
+                                  {product.category && (
+                                    <Badge
+                                      variant="outline"
+                                      size="xs"
+                                      color="gray"
+                                      style={{ marginTop: 2 }}
+                                    >
+                                      {product.category.name}
+                                    </Badge>
+                                  )}
+                                </div>
+                              ))}
+                              {order.products.length > 2 && (
+                                <Badge variant="outline" size="xs">
+                                  +{order.products.length - 2} more
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="td-quantity">
+                          <div className="quantity-info">
+                            <span className="quantity-number">
+                              {order.products.reduce((sum, p) => sum + p.pivot.quantity, 0)}
+                            </span>
+                            <span className="quantity-label">items</span>
+                          </div>
+                        </td>
+                        <td className="td-total">
+                          <div className="total-amount">
+                            <DollarSign size={14} />
+                            {parseFloat(order.total_price).toFixed(2)}
+                          </div>
+                        </td>
+                        <td className="td-status">
+                          <div className="status-cell">
+                            <Select
+                              data={[
+                                { value: 'pending', label: 'Pending' },
+                                { value: 'processing', label: 'Processing' },
+                                { value: 'shipped', label: 'Shipped' },
+                                { value: 'delivered', label: 'Delivered' },
+                                { value: 'cancelled', label: 'Cancelled' },
+                                { value: 'completed', label: 'Completed' },
+                              ]}
+                              value={order.status}
+                              onChange={(val) => handleStatusUpdate(order.id, val)}
+                              size="sm"
+                              withinPortal
+                              className="status-select-dropdown"
+                              itemComponent={StatusSelectItem}
+                              valueComponent={({ value }) => {
+                                const config = getStatusConfig(value);
+                                return (
+                                  <Group spacing="xs" className="status-value-display">
+                                    <span className="status-icon">{config.icon}</span>
+                                    <Badge color={getStatusColor(value)} variant="filled" size="sm">
+                                      {config.label}
+                                    </Badge>
+                                  </Group>
+                                );
+                              }}
+                              styles={{
+                                input: { 
+                                  minWidth: 140,
+                                  border: 'none',
+                                  background: 'transparent',
+                                  padding: '4px 8px'
+                                },
+                                dropdown: {
+                                  border: '1px solid #e5e7eb',
+                                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
+                                }
+                              }}
+                            />
+                          </div>
+                        </td>
+                        <td className="td-date">
+                          <div className="date-info">
+                            <Calendar size={14} />
+                            {formatDate(order.created_at)}
+                          </div>
+                        </td>
+                        <td className="td-shipping">
+                          <Tooltip label={order.shipping_address || 'No address provided'}>
+                            <div className="shipping-address">
+                              <MapPin size={14} />
+                              {truncateAddress(order.shipping_address)}
+                            </div>
+                          </Tooltip>
+                        </td>
+                        <td className="td-actions">
+                          <div className="action-buttons">
+                            <Tooltip label="View Details">
+                              <Button
+                                variant="subtle"
+                                size="xs"
+                                onClick={() => openModal(order)}
+                                className="action-btn view-btn"
+                              >
+                                <Eye size={16} />
+                              </Button>
+                            </Tooltip>
+                            <Tooltip label="Delete Order">
+                              <Button
+                                variant="subtle"
+                                size="xs"
+                                color="red"
+                                onClick={() => openDeleteModal(order)}
+                                className="action-btn delete-btn"
+                                disabled={deletingIds.has(order.id)}
+                              >
+                                <Trash2 size={16} />
+                              </Button>
+                            </Tooltip>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </ScrollArea>
           </div>
         </div>
       </div>
 
-      <div className="orders-table-content">
-        <ScrollArea>
-          <table className="orders-table">
-            <thead>
-              <tr>
-                <th className="th-id">Order ID</th>
-                <th className="th-customer">Customer</th>
-                <th className="th-products">Products</th>
-                <th className="th-quantity">Items</th>
-                <th className="th-total">Total Amount</th>
-                <th className="th-status">Status</th>
-                <th className="th-date">Date</th>
-                <th className="th-shipping">Shipping Address</th>
-                <th className="th-actions">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={9} className="table-loading">
-                    <div className="loading-spinner"></div>
-                    <span>Loading orders...</span>
-                  </td>
-                </tr>
-              ) : orders.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="empty-state">
-                    <Package size={48} />
-                    <h3>No Orders Found</h3>
-                    <p>Orders will appear here once customers start placing them.</p>
-                  </td>
-                </tr>
-              ) : (
-                orders.map((order) => (
-                  <tr key={order.id} className="order-row">
-                    <td className="td-id">
-                      <div className="order-id">
-                        #{String(order.id).padStart(4, '0')}
-                      </div>
-                    </td>
-                    <td className="td-customer">
-                      <div className="customer-info">
-                        <Avatar size="sm" color="blue" radius="xl">
-                          <User size={16} />
-                        </Avatar>
-                        <div className="customer-details">
-                          <div className="customer-name">
-                            {order.user?.name || 'Unknown User'}
-                          </div>
-                          <div className="customer-id">
-                            ID: {order.user_id}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="td-products">
-                      <div className="products-preview">
-                        <div className="product-images">
-                          {order.products.slice(0, 3).map((product) => (
-                            <Tooltip 
-                              key={product.id} 
-                              label={`${product.name} (Qty: ${product.pivot.quantity})`}
-                            >
-                              <div className="product-image-container">
-                                <Image
-                                  src={
-                                    product.images && product.images.length > 0
-                                      ? `http://127.0.0.1:8000/storage/${product.images[0].image_path}`
-                                      : '/api/placeholder/36/36'
-                                  }
-                                  alt={product.name}
-                                  width={36}
-                                  height={36}
-                                  radius="md"
-                                  fallbackSrc="/api/placeholder/36/36"
-                                />
-                              </div>
-                            </Tooltip>
-                          ))}
-                          {order.products.length > 3 && (
-                            <div className="more-products">
-                              +{order.products.length - 3}
-                            </div>
-                          )}
-                        </div>
-                        <div className="product-names">
-                          {order.products.slice(0, 2).map((product, index) => (
-                            <div key={product.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                              <Badge
-                                variant="light"
-                                size="xs"
-                                className="product-badge"
-                              >
-                                {product.name}
-                              </Badge>
-                              {product.category && (
-                                <Badge
-                                  variant="outline"
-                                  size="xs"
-                                  color="gray"
-                                  style={{ marginTop: 2 }}
-                                >
-                                  {product.category.name}
-                                </Badge>
-                              )}
-                            </div>
-                          ))}
-                          {order.products.length > 2 && (
-                            <Badge variant="outline" size="xs">
-                              +{order.products.length - 2} more
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="td-quantity">
-                      <div className="quantity-info">
-                        <span className="quantity-number">
-                          {order.products.reduce((sum, p) => sum + p.pivot.quantity, 0)}
-                        </span>
-                        <span className="quantity-label">items</span>
-                      </div>
-                    </td>
-                    <td className="td-total">
-                      <div className="total-amount">
-                        <DollarSign size={14} />
-                        {parseFloat(order.total_price).toFixed(2)}
-                      </div>
-                    </td>
-                    <td className="td-status">
-                      <div className="status-cell">
-                        <Select
-                          data={[
-                            { value: 'pending', label: 'Pending' },
-                            { value: 'processing', label: 'Processing' },
-                            { value: 'shipped', label: 'Shipped' },
-                            { value: 'delivered', label: 'Delivered' },
-                            { value: 'cancelled', label: 'Cancelled' },
-                            { value: 'completed', label: 'Completed' },
-                          ]}
-                          value={order.status}
-                          onChange={(val) => handleStatusUpdate(order.id, val)}
-                          size="sm"
-                          withinPortal
-                          className="status-select-dropdown"
-                          itemComponent={StatusSelectItem}
-                          valueComponent={({ value }) => {
-                            const config = getStatusConfig(value);
-                            return (
-                              <Group spacing="xs" className="status-value-display">
-                                <span className="status-icon">{config.icon}</span>
-                                <Badge color={getStatusColor(value)} variant="filled" size="sm">
-                                  {config.label}
-                                </Badge>
-                              </Group>
-                            );
-                          }}
-                          styles={{
-                            input: { 
-                              minWidth: 140,
-                              border: 'none',
-                              background: 'transparent',
-                              padding: '4px 8px'
-                            },
-                            dropdown: {
-                              border: '1px solid #e5e7eb',
-                              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
-                            }
-                          }}
-                        />
-                      </div>
-                    </td>
-                    <td className="td-date">
-                      <div className="date-info">
-                        <Calendar size={14} />
-                        {formatDate(order.created_at)}
-                      </div>
-                    </td>
-                    <td className="td-shipping">
-                      <Tooltip label={order.shipping_address || 'No address provided'}>
-                        <div className="shipping-address">
-                          <MapPin size={14} />
-                          {truncateAddress(order.shipping_address)}
-                        </div>
-                      </Tooltip>
-                    </td>
-                    <td className="td-actions">
-                      <div className="action-buttons">
-                        <Tooltip label="View Details">
-                          <Button
-                            variant="subtle"
-                            size="xs"
-                            onClick={() => openModal(order)}
-                            className="action-btn view-btn"
-                          >
-                            <Eye size={16} />
-                          </Button>
-                        </Tooltip>
-                        <Tooltip label="Delete Order">
-                          <Button
-                            variant="subtle"
-                            size="xs"
-                            color="red"
-                            onClick={() => handleDelete(order.id)}
-                            className="action-btn delete-btn"
-                          >
-                            <Trash2 size={16} />
-                          </Button>
-                        </Tooltip>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </ScrollArea>
-      </div>
+      {/* DELETE CONFIRMATION MODAL */}
+      {deleteModal.isOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Confirm Order Deletion</h3>
+              <button className="modal-close" onClick={closeDeleteModal}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="modal-icon">
+                <AlertCircle size={48} />
+              </div>
+              <p>Are you sure you want to delete this order?</p>
+              <div className="order-preview">
+                <div className="order-preview-info">
+                  <div className="order-preview-header">
+                    <strong>Order #{deleteModal.orderNumber}</strong>
+                  </div>
+                  <div className="order-preview-details">
+                    <div className="order-detail">
+                      <span className="detail-label">Customer:</span>
+                      <span className="detail-value">{deleteModal.customerName}</span>
+                    </div>
+                    <div className="order-detail">
+                      <span className="detail-label">Total:</span>
+                      <span className="detail-value">${deleteModal.totalPrice}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p className="modal-warning">This action cannot be undone.</p>
+            </div>
+            <div className="modal-actions">
+              <button className="cancel-button" onClick={closeDeleteModal}>
+                Cancel
+              </button>
+              <button className="confirm-button" onClick={handleDelete}>
+                Delete Order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Modal 
         opened={showModal} 
@@ -444,6 +560,16 @@ export default function OrdersTable() {
         title={`Order #${String(selectedOrder?.id || '').padStart(4, '0')}`}
         size="xl"
         className="order-detail-modal"
+        styles={{
+          content: {
+            maxHeight: '90vh',
+            overflowY: 'auto',
+          },
+          body: {
+            maxHeight: '70vh',
+            overflowY: 'auto',
+          },
+        }}
       >
         {selectedOrder && (
           <div className="order-detail-content">
@@ -554,6 +680,6 @@ export default function OrdersTable() {
           </div>
         )}
       </Modal>
-    </div>
+    </>
   );
 }

@@ -44,15 +44,22 @@
 
 .main-image {
   width: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 4/3;      /* or remove for flexible height */
   border-radius: 12px;
   overflow: hidden;
+  background: #f8f9fa;    /* optional: light background for padding */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .main-image img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;    /* ensures the whole image is visible */
+  object-position: center;
+  background: #f8f9fa;   /* matches container background */
+  display: block;
 }
 
 .thumbnail-images {
@@ -79,7 +86,9 @@
 .thumbnail img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain; /* Changed from 'cover' to 'contain' */
+  object-position: center;
+  background-color: #f8f9fa;
 }
 
 .product-info {
@@ -296,4 +305,4 @@
   .price {
     font-size: 1.5rem;
   }
-} 
+}

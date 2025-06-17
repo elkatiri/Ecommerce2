@@ -1,7 +1,7 @@
 import { AppShell, AppShellMain } from '@mantine/core';
 import Sidebar from './sidebar';
 
-function Home() {
+function Homedash() {
   return (
     <AppShell
       navbar={{ width: 250, breakpoint: 'sm' }}
@@ -15,4 +15,4 @@ function Home() {
   );
 }
 
-export default Home
+export default Homedash;

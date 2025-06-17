@@ -8,6 +8,8 @@ import Navbar from '../../components/NavBar/NavBar';
 import Footer from '../../components/Footer/Footer';
 import './Checkout.css';
 import axios from 'axios';
+import { notifications } from '@mantine/notifications';
+import { Button } from '@mantine/core';
 
 const Checkout = () => {
   const dispatch = useDispatch();
@@ -19,7 +21,7 @@ const Checkout = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isRegistering, setIsRegistering] = useState(false);
+
 
   useEffect(() => {
     if (cart.length === 0) navigate('/cart');
@@ -33,112 +35,126 @@ const Checkout = () => {
     address: '',
     city: '',
     postalCode: '',
-    country: 'Morocco',
-    password: '',
-    password_confirmation: ''
+    country: 'Morocco'
   });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing
+    if (error) setError('');
+  };
+
+  const validateForm = () => {
+    const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'postalCode'];
+    for (let field of requiredFields) {
+      if (!formData[field].trim()) {
+        setError(`${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
+        return false;
+      }
+    }
+    
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!user) {
-      // Register new user
-      setIsRegistering(true);
-      try {
-        const registerData = {
-          firstname: formData.firstName,
-          lastname: formData.lastName,
-          email: formData.email,
-          password: formData.password,
-          password_confirmation: formData.password_confirmation
-        };
-
-        const response = await axios.post('http://localhost:8000/api/register', registerData);
-        const { access_token, user: newUser } = response.data;
-
-        // Store auth data
-        localStorage.setItem('token', access_token);
-        dispatch(setCredentials({
-          user: {
-            id: newUser.id,
-            name: newUser.name,
-            email: newUser.email,
-          },
-          token: access_token
-        }));
-
-        setIsRegistering(false);
-        setShowConfirmation(true);
-      } catch (error) {
-        setError(error.response?.data?.message || 'Registration failed. Please try again.');
-        setIsRegistering(false);
-        return;
-      }
-    } else {
-      setShowConfirmation(true);
-    }
-  };
-
-  const confirmOrder = async () => {
-    if (isLoading) return;
-    setIsLoading(true);
-    setError('');
-
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('No authentication token found. Please try again.');
-        setShowConfirmation(false);
-        return;
-      }
-
-      const currentUser = user || JSON.parse(localStorage.getItem('user'));
-      if (!currentUser?.id) {
-        setError('User information not found. Please try again.');
-        setShowConfirmation(false);
-        return;
-      }
-
-      const orderData = {
-        user_id: currentUser.id,
-        total_price: total,
-        status: 'pending',
-        shipping_address: `${formData.address}, ${formData.city}, ${formData.postalCode}, ${formData.country}`,
-        products: cart.map(item => ({
-          product_id: item.id,
-          quantity: item.quantity,
-          price: item.price
-        }))
-      };
-
-      const response = await axios.post('http://localhost:8000/api/orders', orderData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
+    if (!validateForm()) {
+      notifications.show({
+        title: 'Form Error',
+        message: error,
+        color: 'red',
+        autoClose: 4000,
       });
-
-      if (response.data) {
-        dispatch(clearCart());
-        setShowConfirmation(false);
-        alert('Order placed successfully! Thank you for your purchase.');
-        navigate('/');
-      }
-    } catch (error) {
-      setError(error.response?.data?.message || 'An error occurred during checkout. Please try again.');
-      setShowConfirmation(false);
-    } finally {
-      setIsLoading(false);
+      return;
     }
+    
+    setShowConfirmation(true);
   };
 
-  const cancelOrder = () => setShowConfirmation(false);
+ const confirmOrder = async () => {
+  if (isLoading) return;
+  setIsLoading(true);
+  setError('');
+
+  try {
+    const orderData = {
+      user_id: user?.id || null, // null si pas d'utilisateur connecté
+      total_price: parseFloat(total),
+      status: 'pending',
+      shipping_address: `${formData.address}, ${formData.city}, ${formData.postalCode}, ${formData.country}`,
+      customer_info: !user ? {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        phone: formData.phone
+      } : null,
+      products: cart.map(item => ({
+        product_id: item.id,
+        quantity: parseInt(item.quantity),
+        price: parseFloat(item.price)
+      }))
+    };
+
+    console.log('Sending order data:', orderData); // For debugging
+
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await axios.post('http://localhost:8000/api/orders', orderData, {
+      headers
+    });
+
+    if (response.data) {
+      dispatch(clearCart());
+      setShowConfirmation(false);
+      
+      notifications.show({
+        title: 'Commande Confirmée! 🎉',
+        message: `Votre commande #${response.data.id} a été placée avec succès. Montant total: ${total.toFixed(2)} dh`,
+        color: 'green',
+        autoClose: 5000,
+      });
+      
+      // Redirect to orders page or home after a short delay
+     
+    }
+  } catch (error) {
+    console.error('Order creation error:', error);
+    
+    const errorMessage = error.response?.data?.message || 
+                        error.response?.data?.errors ? 
+                        Object.values(error.response.data.errors).flat().join(', ') :
+                        error.message ||
+                        'Une erreur est survenue lors de la commande. Veuillez réessayer.';
+    
+    setError(errorMessage);
+    setShowConfirmation(false);
+    
+    notifications.show({
+      title: 'Erreur de Commande ❌',
+      message: errorMessage,
+      color: 'red',
+      autoClose: 6000,
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+  const cancelOrder = () => {
+    setShowConfirmation(false);
+    setError('');
+  };
 
   if (cart.length === 0) return null;
 
@@ -146,13 +162,27 @@ const Checkout = () => {
     <div className="checkout-page">
       <Navbar />
       <div className="checkout-container">
-        <div className="checkout-header"><h1>Checkout</h1></div>
+        <div className="checkout-header">
+          <h1>Checkout</h1>
+        </div>
 
         <div className="checkout-content">
           <div className="checkout-form-container">
             <form onSubmit={handleSubmit} className="checkout-form">
               <div className="form-step">
-                <h2>{!user ? 'Create Account & Shipping Information' : 'Shipping Information'}</h2>
+                <h2>Shipping Information</h2>
+
+                {error && (
+                  <div className="error-message" style={{ 
+                    color: 'red', 
+                    background: '#fee', 
+                    padding: '10px', 
+                    borderRadius: '4px', 
+                    marginBottom: '15px' 
+                  }}>
+                    {error}
+                  </div>
+                )}
 
                 <div className="form-row">
                   <div className="form-group">
@@ -204,33 +234,6 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                {!user && (
-                  <>
-                    <div className="form-group">
-                      <label htmlFor="password">Password</label>
-                      <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        value={formData.password} 
-                        onChange={handleInputChange} 
-                        required 
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="password_confirmation">Confirm Password</label>
-                      <input 
-                        type="password" 
-                        id="password_confirmation" 
-                        name="password_confirmation" 
-                        value={formData.password_confirmation} 
-                        onChange={handleInputChange} 
-                        required 
-                      />
-                    </div>
-                  </>
-                )}
-
                 <div className="form-group">
                   <label htmlFor="address">Address</label>
                   <input 
@@ -281,13 +284,14 @@ const Checkout = () => {
                   </select>
                 </div>
 
-                <button 
+                <Button 
                   type="submit" 
                   className="submit-order"
-                  disabled={isLoading || isRegistering}
+                  disabled={isLoading}
+                  loading={isLoading}
                 >
-                  {isLoading ? 'Processing...' : isRegistering ? 'Creating Account...' : 'Place Order'}
-                </button>
+                  {isLoading ? 'Processing...' : 'Place Order'}
+                </Button>
               </div>
             </form>
           </div>
@@ -298,24 +302,43 @@ const Checkout = () => {
               {cart.map(item => (
                 <div key={item.id} className="order-item">
                   <div className="item-image">
-                    <img src={`http://localhost:8000/storage/${item.image}`} onError={(e) => { e.target.src = '/fallback.jpg'; }} alt={item.name} />
+                    <img 
+                      src={item.image ? `http://localhost:8000/storage/${item.image}` : '/fallback.jpg'} 
+                      onError={(e) => { e.target.src = '/fallback.jpg'; }} 
+                      alt={item.name} 
+                    />
                   </div>
                   <div className="item-details">
                     <h3>{item.name}</h3>
                     <p className="item-quantity">Quantity: {item.quantity}</p>
-                    <p className="item-price">{item.price} dh</p>
+                    <p className="item-price">{parseFloat(item.price).toFixed(2)} dh</p>
                   </div>
                 </div>
               ))}
             </div>
             <div className="order-total">
-              <div className="total-row"><span>Subtotal</span><span>{total.toFixed(2)} dh</span></div>
-              <div className="total-row"><span>Shipping</span><span>Free</span></div>
-              <div className="total-row final"><span>Total</span><span>{total.toFixed(2)} dh</span></div>
+              <div className="total-row">
+                <span>Subtotal</span>
+                <span>{parseFloat(total).toFixed(2)} dh</span>
+              </div>
+              <div className="total-row">
+                <span>Shipping</span>
+                <span>Free</span>
+              </div>
+              <div className="total-row final">
+                <span>Total</span>
+                <span>{parseFloat(total).toFixed(2)} dh</span>
+              </div>
             </div>
             <div className="order-features">
-              <div className="feature"><Truck size={24} /><span>Free Shipping</span></div>
-              <div className="feature"><Shield size={24} /><span>Secure Order</span></div>
+              <div className="feature">
+                <Truck size={24} />
+                <span>Free Shipping</span>
+              </div>
+              <div className="feature">
+                <Shield size={24} />
+                <span>Secure Order</span>
+              </div>
             </div>
           </div>
         </div>
@@ -325,7 +348,7 @@ const Checkout = () => {
         <div className="confirmation-overlay">
           <div className="confirmation-modal">
             <h3>Confirm Your Order</h3>
-            <p>{error || 'Are you sure you want to place this order?'}</p>
+            <p>Are you sure you want to place this order for {parseFloat(total).toFixed(2)} dh?</p>
             <div className="confirmation-buttons">
               <button 
                 onClick={confirmOrder} 

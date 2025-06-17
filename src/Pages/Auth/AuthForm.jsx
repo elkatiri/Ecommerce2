@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import "./AuthForm.css";
 import { useNavigate, useLocation } from "react-router-dom";
-import Footer from "../../components/Footer/Footer";
 import NavBar from "../../components/NavBar/NavBar";
+import Footer from "../../components/Footer/Footer";
 import Spinner from "../../components/Spinner/Spinner";
 import { useDispatch, useSelector } from "react-redux";
 import { setCredentials, logout } from "../../store/authSlice";
 
 // Configure axios defaults
-axios.defaults.withCredentials = true; // Important for Sanctum
+axios.defaults.withCredentials = true; 
 axios.defaults.baseURL = 'http://127.0.0.1:8000';
 
 const AuthForm = () => {
@@ -18,7 +18,8 @@ const AuthForm = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
+    firstname: "",
+    lastname: "",
     email: "",
     password: "",
     password_confirmation: "",
@@ -28,78 +29,33 @@ const AuthForm = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
 
-  // Get the redirect path from location state or default to home
-  const from = location.state?.from?.pathname || "/";
-
-  useEffect(() => {
-    // Check if user is already logged in
-    const token = localStorage.getItem("token");
-    if (token) {
-      fetchUserData(token);
-    }
-  }, []);
-
-  const fetchUserData = async (token) => {
-    try {
-      const response = await axios.get("/api/user", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      
-      dispatch(setCredentials({
-        user: {
-          id: response.data.id,
-          name: response.data.name,
-          email: response.data.email,
-        },
-        token: token
-      }));
-
-      // Redirect to the saved path or dashboard for admin
-      if (response.data.is_admin) {
-        navigate("/dashboard/products");
-      } else {
-        navigate("/");
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      handleLogout();
-    }
-  };
+  // Where to redirect after login
+  const from = location.state?.from?.pathname || "/home";
 
   const handleLogout = async () => {
     try {
       const token = localStorage.getItem("token");
       if (token) {
         await axios.post("/api/logout", {}, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
       }
-    } catch (error) {
-      console.error("Logout error:", error);
+    } catch (e) {
+      console.error("Logout error:", e);
     } finally {
-      // Clear local storage and Redux state
       localStorage.removeItem("token");
-      localStorage.removeItem("userName");
-      localStorage.removeItem("email");
       dispatch(logout());
-      navigate("/");
+      navigate("/home");
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const toggleForm = () => {
-    setIsLogin((prevState) => !prevState);
+    setIsLogin((prev) => !prev);
     setBorder(false);
     setError("");
   };
@@ -111,56 +67,61 @@ const AuthForm = () => {
 
     try {
       if (isLogin) {
-        const response = await axios.post("/api/login", {
+        // Login flow
+        const { data } = await axios.post("/api/login", {
           email: formData.email,
           password: formData.password,
         });
 
-        const { access_token, user } = response.data;
-        
-        // Store auth data
+        const { access_token, user: u } = data;
         localStorage.setItem("token", access_token);
-        localStorage.setItem("userName", user.name);
-        localStorage.setItem("email", user.email);
 
-        // Update Redux store with credentials
         dispatch(setCredentials({
-          user: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
+          user: { 
+            id: u.id, 
+            name: u.name, 
+            email: u.email,
+            role: u.role // Include role in user data
           },
-          token: access_token
+          token: access_token,
         }));
 
-        // Redirect based on user role and saved path
-        if (user.is_admin) {
-          navigate("/dashboard/products");
+        // Check user role for redirect
+        if (u.role === 'admin') {
+          navigate("/home");
         } else {
           navigate(from);
         }
       } else {
-        // Registration
+        // Registration flow
         if (formData.password !== formData.password_confirmation) {
           setError("Passwords do not match");
           setBorder(true);
+          setLoading(false);
           return;
         }
 
-        await axios.post("/api/register", formData);
+        await axios.post("/api/register", {
+          firstname: formData.firstname,
+          lastname: formData.lastname,
+          email: formData.email,
+          password: formData.password,
+          password_confirmation: formData.password_confirmation,
+        });
+
         setIsLogin(true);
-        setError("Registration successful! Please login.");
+        setError("Registration successful! Please log in.");
       }
-    } catch (error) {
-      console.error("Auth error:", error);
-      setError(error.response?.data?.message || "An error occurred. Please try again.");
+    } catch (err) {
+      console.error("Auth error:", err);
+      setError(err.response?.data?.message || "An error occurred.");
       setBorder(true);
     } finally {
       setLoading(false);
     }
   };
 
-  // If user is already logged in, show a message
+  // If already logged in, show welcome + logout
   if (user) {
     return (
       <>
@@ -168,9 +129,7 @@ const AuthForm = () => {
         <div className="auth-container">
           <div className="auth-form">
             <h2 className="form-title">Welcome back, {user.name}!</h2>
-            <p style={{ textAlign: 'center', marginBottom: '1rem' }}>
-              You are already logged in.
-            </p>
+            <p>You are already logged in.</p>
             <button onClick={handleLogout} className="submit-btn">
               Logout
             </button>
@@ -188,24 +147,39 @@ const AuthForm = () => {
         <div className={`auth-form ${isLogin ? "fade-in-bottom" : "fade-in-top"}`}>
           <h2 className="form-title">{isLogin ? "Sign In" : "Sign Up"}</h2>
           {error && <p className="error-text">{error}</p>}
-          
+
           <form onSubmit={handleSubmit}>
             {!isLogin && (
-              <div className="form-group">
-                <label htmlFor="name">Name</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  placeholder="Enter your full name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  disabled={loading}
-                />
-              </div>
+              <>
+                <div className="form-group">
+                  <label htmlFor="firstname">First Name</label>
+                  <input
+                    type="text"
+                    id="firstname"
+                    name="firstname"
+                    placeholder="Enter your first name"
+                    value={formData.firstname}
+                    onChange={handleChange}
+                    disabled={loading}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="lastname">Last Name</label>
+                  <input
+                    type="text"
+                    id="lastname"
+                    name="lastname"
+                    placeholder="Enter your last name"
+                    value={formData.lastname}
+                    onChange={handleChange}
+                    disabled={loading}
+                    required
+                  />
+                </div>
+              </>
             )}
-            
+
             <div className="form-group">
               <label htmlFor="email">Email Address</label>
               <input
@@ -215,11 +189,11 @@ const AuthForm = () => {
                 placeholder="Enter your email"
                 value={formData.email}
                 onChange={handleChange}
-                required
                 disabled={loading}
+                required
               />
             </div>
-            
+
             <div className="form-group">
               <label htmlFor="password">Password</label>
               <input
@@ -229,9 +203,9 @@ const AuthForm = () => {
                 placeholder="Enter your password"
                 value={formData.password}
                 onChange={handleChange}
-                required
                 disabled={loading}
-                style={{ border: border ? "1px solid red" : "1px solid #ccc" }}
+                required
+                style={{ border: border ? "1px solid red" : undefined }}
               />
             </div>
 
@@ -245,33 +219,29 @@ const AuthForm = () => {
                   placeholder="Confirm your password"
                   value={formData.password_confirmation}
                   onChange={handleChange}
-                  required
                   disabled={loading}
-                  style={{
-                    border: border ? "1px solid red" : "1px solid #ccc",
-                  }}
+                  required
+                  style={{ border: border ? "1px solid red" : undefined }}
                 />
               </div>
             )}
 
-            <button 
-              type="submit" 
-              className={`submit-btn ${loading ? 'loading' : ''}`} 
+            <button
+              type="submit"
+              className={`submit-btn ${loading ? "loading" : ""}`}
               disabled={loading}
             >
-              {loading ? (
-                <span className="loading-text">
-                  {isLogin ? "Signing in..." : "Creating account..."}
-                </span>
-              ) : (
-                isLogin ? "Sign In" : "Create Account"
-              )}
+              {loading
+                ? <Spinner />
+                : isLogin
+                  ? "Sign In"
+                  : "Create Account"}
             </button>
           </form>
 
-          <button 
-            className="toggle-btn" 
-            onClick={toggleForm} 
+          <button
+            className="toggle-btn"
+            onClick={toggleForm}
             disabled={loading}
           >
             {isLogin

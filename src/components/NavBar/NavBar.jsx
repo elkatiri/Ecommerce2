@@ -1,6 +1,6 @@
 // src/components/Navbar.jsx
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, ShoppingCart, User, Menu, X, ShoppingBag, Trash, Plus, Minus, LogOut } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, X, ShoppingBag, Trash, Plus, Minus, LogOut, Settings } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { removeFromCart, updateQuantity } from "../../store/cartSlice";
@@ -68,13 +68,13 @@ const Navbar = () => {
       localStorage.removeItem("userName");
       localStorage.removeItem("email");
       dispatch(logout());
-      navigate("/");
+      navigate("/home");
     }
   };
 
   const isActive = (path) => {
-    if (path === "/") {
-      return location.pathname === "/";
+    if (path === "/home") {
+      return location.pathname === "/home";
     }
     return location.pathname === path;
   };
@@ -96,11 +96,14 @@ const Navbar = () => {
     return user.name.split(' ')[0];
   };
 
+  // Check if user is admin
+  const isAdmin = user?.role === 'admin';
+
   return (
     <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
       <div className="navbar-container">
         <div className="navbar-left">
-          <Link to="/" className="logo">
+          <Link to="/home" className="logo">
             <span className="logo-text">cyber</span>
           </Link>
         </div>
@@ -116,8 +119,8 @@ const Navbar = () => {
         <ul className={`nav-links ${isOpen ? "open" : ""}`}>
           <li>
             <Link 
-              to="/" 
-              className={isActive("/") ? "active home-active" : ""}
+              to="/home" 
+              className={isActive("/home") ? "active home-active" : ""}
               onClick={() => setIsOpen(false)}
             >
               Home
@@ -175,10 +178,16 @@ const Navbar = () => {
                     <span className="user-full-name">{user.name}</span>
                     <span className="user-email">{user.email}</span>
                   </div>
-                  <button onClick={() => navigate('/orders')} className="menu-item">
+                  <button onClick={() => navigate('/orders_user')} className="menu-item">
                     <ShoppingBag size={16} />
                     Check My Orders
                   </button>
+                  {isAdmin && (
+                    <button onClick={() => navigate('/dashboard')} className="menu-item">
+                      <Settings size={16} />
+                      Admin Panel
+                    </button>
+                  )}
                   <button onClick={handleLogout} className="menu-item">
                     <LogOut size={16} />
                     Logout
@@ -210,6 +219,12 @@ const Navbar = () => {
                     <ShoppingBag size={16} />
                     Check My Orders
                   </button>
+                  {isAdmin && (
+                    <button onClick={() => navigate('/dashboard')} className="menu-item">
+                      <Settings size={16} />
+                      Admin Panel
+                    </button>
+                  )}
                   <button onClick={handleLogout} className="menu-item">
                     <LogOut size={16} />
                     Logout

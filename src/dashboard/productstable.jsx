@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import '../styles/productstable.css';
-import { Eye, Trash2, Pencil, X, Upload, Image as ImageIcon } from 'lucide-react';
+import { Eye, Trash2, Pencil, X, Upload, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import {
   Modal,
   TextInput,
@@ -28,6 +28,13 @@ export default function ProductTable() {
   const [editedProduct, setEditedProduct] = useState(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [deleteModal, setDeleteModal] = useState({ 
+    isOpen: false, 
+    productId: null, 
+    productName: '',
+    productImage: null
+  });
+  const [deletingIds, setDeletingIds] = useState(new Set());
 
   const fetchProducts = () => {
     setLoading(true);
@@ -50,21 +57,50 @@ export default function ProductTable() {
     fetchCategories();
   }, []);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
+  const openDeleteModal = (product) => {
+    setDeleteModal({ 
+      isOpen: true, 
+      productId: product.id, 
+      productName: product.name,
+      productImage: product.images && product.images.length > 0 ? product.images[0] : null
+    });
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal({ 
+      isOpen: false, 
+      productId: null, 
+      productName: '',
+      productImage: null
+    });
+  };
+
+  const handleDelete = async () => {
+    const productId = deleteModal.productId;
+    if (!productId) return;
+
+    setDeletingIds(prev => new Set(prev).add(productId));
+    closeDeleteModal();
+
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/products/${id}`);
-      fetchProducts();
+      await axios.delete(`http://127.0.0.1:8000/api/products/${productId}`);
+      setProducts(prev => prev.filter(product => product.id !== productId));
       notifications.show({
         title: '✅ Product Deleted',
         message: 'Product was deleted successfully.',
-        color: 'red',
+        color: 'teal',
       });
-    } catch {
+    } catch (error) {
       notifications.show({
         title: '❌ Delete Failed',
         message: 'Failed to delete product.',
         color: 'red',
+      });
+    } finally {
+      setDeletingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(productId);
+        return newSet;
       });
     }
   };
@@ -73,6 +109,7 @@ export default function ProductTable() {
     setSelectedProduct(product);
     setShowModal(true);
   };
+  
   const handleCloseShow = () => {
     setShowModal(false);
     setSelectedProduct(null);
@@ -189,7 +226,8 @@ export default function ProductTable() {
                     <Trash2
                       size={16}
                       className="delete"
-                      onClick={() => handleDelete(p.id)}
+                      onClick={() => openDeleteModal(p)}
+                      disabled={deletingIds.has(p.id)}
                     />
                     <Eye
                       size={16}
@@ -204,99 +242,137 @@ export default function ProductTable() {
         </tbody>
       </table>
 
-      {/* VIEW MODAL */}
-      {/* VIEW MODAL */}
-<Modal
-  opened={showModal}
-  onClose={handleCloseShow}
-  title={`Product Details: ${selectedProduct?.name || ''}`}
-  size="xl"
-  className="product-view-modal"
->
-  {selectedProduct && (
-    <div className="product-view-content">
-      <div className="product-view-header">
-        <div className="product-view-images">
-          {selectedProduct.images && selectedProduct.images.length > 0 ? (
-            selectedProduct.images.map((img, i) => (
-              <img
-                key={i}
-                src={`http://127.0.0.1:8000/storage/${img.image_path}`}
-                alt={`${selectedProduct.name}-${i}`}
-                className="product-view-image"
-              />
-            ))
-          ) : (
-            <div className="no-image-placeholder">No images available</div>
-          )}
-        </div>
-        <div className="product-view-info">
-          <h2 className="product-view-name">{selectedProduct.name}</h2>
-          <Badge size="lg" className="product-view-category">
-            {selectedProduct.category?.name || 'No Category'}
-          </Badge>
-          {selectedProduct.description && (
-            <Text className="product-description" mt="md">
-              {selectedProduct.description}
-            </Text>
-          )}
-        </div>
-      </div>
-
-      <div className="product-view-details">
-        {[
-          ['Product ID', `#${selectedProduct.id}`],
-          ['Price', `$${parseFloat(selectedProduct.price).toFixed(2)}`],
-          [
-            'Discount',
-            `$${parseFloat(selectedProduct.discount || 0).toFixed(2)}`,
-          ],
-          [
-            'Final Price',
-            `$${(
-              parseFloat(selectedProduct.price) -
-              parseFloat(selectedProduct.discount || 0)
-            ).toFixed(2)}`,
-          ],
-          ['Stock Quantity', `${selectedProduct.quantity} units`],
-          [
-            'Created Date',
-            new Date(selectedProduct.created_at).toLocaleDateString(),
-          ],
-          [
-            'Last Updated',
-            new Date(selectedProduct.updated_at).toLocaleDateString(),
-          ],
-        ].map(([label, value]) => (
-          <div className="product-detail-item" key={label}>
-            <div className="product-detail-label">{label}</div>
-            <div className="product-detail-value">{value}</div>
+      {/* DELETE CONFIRMATION MODAL */}
+      {deleteModal.isOpen && (
+        <div className="modal-overlay" onClick={closeDeleteModal}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Confirm Product Deletion</h3>
+              <button className="modal-close" onClick={closeDeleteModal}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="modal-icon">
+                <AlertCircle size={48} />
+              </div>
+              <p>Are you sure you want to delete this product?</p>
+              <div className="product-preview">
+                {deleteModal.productImage && (
+                  <img 
+                    src={`http://127.0.0.1:8000/storage/${deleteModal.productImage.image_path}`}
+                    alt={deleteModal.productName}
+                    className="product-preview-image"
+                  />
+                )}
+                <div className="product-preview-info">
+                  <strong>"{deleteModal.productName}"</strong>
+                </div>
+              </div>
+              <p className="modal-warning">This action cannot be undone.</p>
+            </div>
+            <div className="modal-actions">
+              <button className="cancel-button" onClick={closeDeleteModal}>
+                Cancel
+              </button>
+              <button className="confirm-button" onClick={handleDelete}>
+                Delete Product
+              </button>
+            </div>
           </div>
-        ))}
+        </div>
+      )}
 
-        {/* ← NEW COLORS ROW ↓ */}
-        {selectedProduct.colors && selectedProduct.colors.length > 0 && (
-          <div className="product-detail-item">
-            <div className="product-detail-label">Colors dispo</div>
-            <div className="product-detail-value">
-              {selectedProduct.colors.map((c) => (
-                <Badge
-                  key={c.id}
-                  color={c.color}
-                  variant="light"
-                  style={{ marginRight: 6, textTransform: 'capitalize' }}
-                >
-                  {c.color}
+      {/* VIEW MODAL */}
+      <Modal
+        opened={showModal}
+        onClose={handleCloseShow}
+        title={`Product Details: ${selectedProduct?.name || ''}`}
+        size="xl"
+        className="product-view-modal"
+      >
+        {selectedProduct && (
+          <div className="product-view-content">
+            <div className="product-view-header">
+              <div className="product-view-images">
+                {selectedProduct.images && selectedProduct.images.length > 0 ? (
+                  selectedProduct.images.map((img, i) => (
+                    <img
+                      key={i}
+                      src={`http://127.0.0.1:8000/storage/${img.image_path}`}
+                      alt={`${selectedProduct.name}-${i}`}
+                      className="product-view-image"
+                    />
+                  ))
+                ) : (
+                  <div className="no-image-placeholder">No images available</div>
+                )}
+              </div>
+              <div className="product-view-info">
+                <h2 className="product-view-name">{selectedProduct.name}</h2>
+                <Badge size="lg" className="product-view-category">
+                  {selectedProduct.category?.name || 'No Category'}
                 </Badge>
+                {selectedProduct.description && (
+                  <Text className="product-description" mt="md">
+                    {selectedProduct.description}
+                  </Text>
+                )}
+              </div>
+            </div>
+
+            <div className="product-view-details">
+              {[
+                ['Product ID', `#${selectedProduct.id}`],
+                ['Price', `$${parseFloat(selectedProduct.price).toFixed(2)}`],
+                [
+                  'Discount',
+                  `$${parseFloat(selectedProduct.discount || 0).toFixed(2)}`,
+                ],
+                [
+                  'Final Price',
+                  `$${(
+                    parseFloat(selectedProduct.price) -
+                    parseFloat(selectedProduct.discount || 0)
+                  ).toFixed(2)}`,
+                ],
+                ['Stock Quantity', `${selectedProduct.quantity} units`],
+                [
+                  'Created Date',
+                  new Date(selectedProduct.created_at).toLocaleDateString(),
+                ],
+                [
+                  'Last Updated',
+                  new Date(selectedProduct.updated_at).toLocaleDateString(),
+                ],
+              ].map(([label, value]) => (
+                <div className="product-detail-item" key={label}>
+                  <div className="product-detail-label">{label}</div>
+                  <div className="product-detail-value">{value}</div>
+                </div>
               ))}
+
+              {selectedProduct.colors && selectedProduct.colors.length > 0 && (
+                <div className="product-detail-item">
+                  <div className="product-detail-label">Colors dispo</div>
+                  <div className="product-detail-value">
+                    {selectedProduct.colors.map((c) => (
+                      <Badge
+                        key={c.id}
+                        color={c.color}
+                        variant="light"
+                        style={{ marginRight: 6, textTransform: 'capitalize' }}
+                      >
+                        {c.color}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
-      </div>
-    </div>
-  )}
-</Modal>
-
+      </Modal>
 
       {/* EDIT MODAL */}
       <Modal

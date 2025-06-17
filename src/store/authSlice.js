@@ -17,7 +17,8 @@ const authSlice = createSlice({
       state.user = {
         id: user.id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        role: user.role, // Add role to user state
       };
       state.token = token;
       state.isAuthenticated = true;
@@ -27,7 +28,8 @@ const authSlice = createSlice({
       state.user = {
         id: action.payload.id,
         name: action.payload.name,
-        email: action.payload.email
+        email: action.payload.email,
+        role: action.payload.role // Add role to user state
       };
       state.isAuthenticated = true;
     },
@@ -65,4 +67,5 @@ export const selectCurrentUser = (state) => state.auth.user;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 export const selectAuthToken = (state) => state.auth.token;
 export const selectAuthLoading = (state) => state.auth.loading;
-export const selectAuthError = (state) => state.auth.error; 
+export const selectAuthError = (state) => state.auth.error;
+export const selectUserRole = (state) => state.auth.user?.role; // Add role selector

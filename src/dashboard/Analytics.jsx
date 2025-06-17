@@ -27,9 +27,7 @@ import {
 } from 'lucide-react';
 import '../styles/chartAnalytics.css';
 
-// ---------------------------------------
-// Sparkline + Custom Tooltip Component
-// ---------------------------------------
+// Ajoute ce composant dans ton fichier Analytics.jsx
 const RevenueSparklineChart = ({ data, monthLabels, orders }) => {
   const [tooltip, setTooltip] = useState({ show: false, x: 0, y: 0, content: null });
   const [hoveredIndex, setHoveredIndex] = useState(-1);
@@ -60,48 +58,78 @@ const RevenueSparklineChart = ({ data, monthLabels, orders }) => {
   const yTicks = [maxY, (minY + maxY) / 2, minY];
 
   return (
-    <div style={{ position: 'relative', width: '100%' }}>
+    <div style={{ position: 'relative', width: '100%', height: '160px' }}>
       {/* Y-axis labels */}
-      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 20, width: 40, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-end', zIndex: 1 }}>
+      <div style={{ 
+        position: 'absolute', 
+        left: 0, 
+        top: 0, 
+        height: '120px', 
+        width: '40px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'space-between', 
+        alignItems: 'flex-end', 
+        paddingRight: '8px',
+        zIndex: 1 
+      }}>
         {yTicks.map((tick, i) => (
-          <span key={i} style={{ fontSize: 10, color: '#64748b' }}>
+          <span key={i} style={{ fontSize: '10px', color: '#64748b', lineHeight: 1 }}>
             ${tick.toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </span>
         ))}
       </div>
-      {/* Chart */}
-      <div 
-        style={{ marginLeft: 40, cursor: 'crosshair', width: 'calc(100% - 40px)' }} 
-        onMouseMove={handleMouseMove} 
-        onMouseLeave={handleMouseLeave}
-      >
-        <Sparkline
-          w="100%"
-          h={120}
-          data={data}
-          curveType="monotone"
-          color="pink"
-          fillOpacity={0.47}
-          strokeWidth={3}
-        />
-      </div>
-      {/* X-axis labels - FIXED */}
+
+      {/* Chart Container */}
       <div style={{ 
+        position: 'absolute',
+        left: '40px', 
+        top: 0,
+        right: 0,
+        height: '120px'
+      }}>
+        <div 
+          style={{ 
+            width: '100%', 
+            height: '100%',
+            cursor: 'crosshair'
+          }} 
+          onMouseMove={handleMouseMove} 
+          onMouseLeave={handleMouseLeave}
+        >
+          <Sparkline
+            w="100%"
+            h={120}
+            data={data}
+            curveType="monotone"
+            color="pink"
+            fillOpacity={0.47}
+            strokeWidth={3}
+          />
+        </div>
+      </div>
+
+      {/* X-axis labels - FIXED POSITIONING */}
+      <div style={{ 
+        position: 'absolute',
+        left: '40px',
+        right: 0,
+        top: '125px',
+        height: '35px',
         display: 'flex', 
-        justifyContent: 'space-between', 
-        marginLeft: 40, 
-        width: 'calc(100% - 40px)', 
-        marginTop: 4 
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        paddingTop: '5px'
       }}>
         {monthLabels.map((month, idx) => (
           <span
             key={month}
             style={{
-              fontSize: 10,
+              fontSize: '10px',
               color: '#64748b',
               flex: '1',
               textAlign: 'center',
-              minWidth: '40px',
+              lineHeight: 1,
               whiteSpace: 'nowrap'
             }}
           >
@@ -109,6 +137,8 @@ const RevenueSparklineChart = ({ data, monthLabels, orders }) => {
           </span>
         ))}
       </div>
+
+      {/* Tooltip */}
       {tooltip.show && tooltip.content && (
         <div style={{
           position: 'fixed',
